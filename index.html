@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Portafolio de Juan Pablo Quintanilla — Desarrollador Frontend & Software Developer especialista en Arquitectura Modular e IA." />
+    <title>Juan Pablo Quintanilla | Developer Portfolio</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <span class="nav-logo">JP<span class="accent">.</span></span>
+        <ul class="nav-links">
+          <li><a href="#proyectos">Proyectos</a></li>
+          <li><a href="#stack">Stack</a></li>
+          <li><a href="#sobre-mi">Sobre mí</a></li>
+          <li><a href="#contacto" class="btn-nav">Contacto</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <main>
+
+      <!-- HERO -->
+      <section class="hero" id="hero">
+        <div class="hero-content">
+          <p class="hero-greeting fade-in">Hola, soy</p>
+          <h1 class="hero-name fade-in">Juan Pablo<br /><span class="accent">Quintanilla</span></h1>
+          <h2 class="hero-role fade-in">
+            Desarrollador Frontend & Software Developer
+            <br />
+            <span class="hero-role-sub">Especialista en Arquitectura Modular e IA</span>
+          </h2>
+          <p class="hero-tagline fade-in">
+            Construyo interfaces limpias, modulares y con propósito —<br />
+            desde SPAs de alto rendimiento hasta módulos de IA que resuelven problemas reales.
+          </p>
+          <div class="hero-ctas fade-in">
+            <a href="#proyectos" class="btn btn-primary">Ver Proyectos</a>
+            <a href="#contacto" class="btn btn-secondary">Contáctame</a>
+            <a href="cv.pdf" class="btn btn-ghost" download>Descargar CV</a>
+          </div>
+        </div>
+        <div class="hero-decoration" aria-hidden="true">
+          <div class="code-block">
+            <span class="code-line"><span class="kw">const</span> dev <span class="op">=</span> {</span>
+            <span class="code-line indent"><span class="prop">name</span>: <span class="str">"Juan Pablo"</span>,</span>
+            <span class="code-line indent"><span class="prop">focus</span>: <span class="str">"Frontend & IA"</span>,</span>
+            <span class="code-line indent"><span class="prop">available</span>: <span class="bool">true</span>,</span>
+            <span class="code-line indent"><span class="prop">passion</span>: <span class="str">"Clean Code"</span></span>
+            <span class="code-line">}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROYECTOS -->
+      <section class="section" id="proyectos">
+        <div class="container">
+          <h2 class="section-title">🚀 Proyectos <span class="accent">Destacados</span></h2>
+          <p class="section-sub">Casos de estudio reales — problemas reales, soluciones reales.</p>
+
+          <div class="projects-grid">
+
+            <!-- Proyecto 1 -->
+            <article class="project-card" data-index="0">
+              <div class="project-header">
+                <div class="project-tags">
+                  <span class="tag tag-ai">IA</span>
+                  <span class="tag tag-hackathon">Hackathon</span>
+                  <span class="tag tag-python">Python</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/alejandro-xoxo/HachatonCampuslans2026.git" target="_blank" rel="noopener" aria-label="Ver repositorio">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  </a>
+                </div>
+              </div>
+
+              <h3 class="project-title">Módulo de Analítica Educativa con IA</h3>
+              <p class="project-event">Hackathon Campuslands 2026</p>
+
+              <div class="project-body">
+                <div class="project-section">
+                  <h4>Contexto & Reto</h4>
+                  <p>Sistema de analítica de engagement estudiantil (Score AEI) construido bajo presión de tiempo real en equipo. El reto: un agente de IA confiable, eficiente en costos y que nunca fallara frente al usuario, incluso bajo restricciones de cuota de API.</p>
+                </div>
+
+                <div class="project-section">
+                  <h4>Mi Rol</h4>
+                  <p>Diseño e implementación del flujo del agente de IA y la interfaz del dashboard analítico.</p>
+                </div>
+
+                <div class="project-section">
+                  <h4>Implementación Técnica</h4>
+                  <ul class="project-list">
+                    <li>
+                      <span class="list-icon">⚡</span>
+                      <div>
+                        <strong>Caché MD5 para optimización de API</strong> — función <code>_hash_datos</code> con <code>hashlib</code> que genera un fingerprint único por perfil estudiantil, almacenando respuestas en un diccionario local y eliminando llamadas duplicadas a Gemini.
+                      </div>
+                    </li>
+                    <li>
+                      <span class="list-icon">🛡️</span>
+                      <div>
+                        <strong>Resiliencia ante fallos de cuota</strong> — bloque de excepciones que detecta <code>ResourceExhausted / 429</code> y activa un diagnóstico algorítmico de respaldo. El usuario nunca ve una pantalla rota.
+                      </div>
+                    </li>
+
+                  </ul>
+                </div>
+
+                <div class="project-section">
+                  <h4>Resultados</h4>
+                  <div class="results-grid">
+                    <div class="result-item">✅ Sistema entregado en tiempo límite</div>
+                    <div class="result-item">✅ Cero caídas ante errores de cuota</div>
+                    <div class="result-item">✅ Llamadas API redundantes eliminadas</div>
+                    <div class="result-item">✅ Respuestas 100% estructuradas y parseables</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="project-stack">
+                <span class="stack-badge">Python</span>
+                <span class="stack-badge">Streamlit</span>
+                <span class="stack-badge">Gemini 2.0</span>
+                <span class="stack-badge">Google GenAI SDK</span>
+                <span class="stack-badge">hashlib</span>
+              </div>
+            </article>
+
+            <!-- Proyecto 2 -->
+            <article class="project-card" data-index="1">
+              <div class="project-header">
+                <div class="project-tags">
+                  <span class="tag tag-frontend">Frontend</span>
+                  <span class="tag tag-spa">SPA</span>
+                  <span class="tag tag-js">Vanilla JS</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/juanpabloquuu7-del/Proyecto_E-commerce_quintanillajuan.git" target="_blank" rel="noopener" aria-label="Ver repositorio">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  </a>
+                </div>
+              </div>
+
+              <h3 class="project-title">E-commerce SPA de Moda</h3>
+              <p class="project-event">Single Page Application — Vanilla JS</p>
+
+              <div class="project-body">
+                <div class="project-section">
+                  <h4>Contexto & Reto</h4>
+                  <p>Plataforma de comercio electrónico moderna para un catálogo de moda. El reto: lograr velocidad, modularidad y rendimiento impecable sin frameworks pesados, demostrando dominio profundo de las APIs nativas del navegador.</p>
+                </div>
+
+                <div class="project-section">
+                  <h4>Mi Rol</h4>
+                  <p>Desarrollador Principal — diseño, arquitectura e implementación completa del frontend.</p>
+                </div>
+
+                <div class="project-section">
+                  <h4>Implementación Técnica</h4>
+                  <ul class="project-list">
+                    <li>
+                      <span class="list-icon">🗺️</span>
+                      <div>
+                        <strong>Enrutamiento dinámico en el cliente</strong> — módulo <code>router.js</code> personalizado que intercepta la navegación y renderiza vistas sin recargar la página, logrando la experiencia de una SPA moderna sin ninguna dependencia externa.
+                      </div>
+                    </li>
+                    <li>
+                      <span class="list-icon">🎨</span>
+                      <div>
+                        <strong>Renderizado dinámico desde JSON</strong> — catálogo de productos generado programáticamente desde orígenes de datos JSON, desacoplando datos de presentación y facilitando actualizaciones sin tocar el HTML.
+                      </div>
+                    </li>
+                    <li>
+                      <span class="list-icon">🛒</span>
+                      <div>
+                        <strong>Gestión de estado del carrito</strong> — lógica modular para adición, eliminación y actualización de cantidades manejada completamente en el cliente.
+                      </div>
+                    </li>
+                    <li>
+                      <span class="list-icon">🧩</span>
+                      <div>
+                        <strong>Web Components nativos</strong> — arquitectura de componentes reutilizables usando estándares del navegador, aplicando separación de responsabilidades sin abstracciones innecesarias.
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="project-section">
+                  <h4>Resultados</h4>
+                  <div class="results-grid">
+                    <div class="result-item">✅ SPA funcional sin frameworks</div>
+                    <div class="result-item">✅ Bundle size mínimo, carga ultra rápida</div>
+                    <div class="result-item">✅ Catálogo dinámico y desacoplado</div>
+                    <div class="result-item">✅ Arquitectura escalable con Web Components</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="project-stack">
+                <span class="stack-badge">HTML5</span>
+                <span class="stack-badge">CSS3</span>
+                <span class="stack-badge">JavaScript ES6+</span>
+                <span class="stack-badge">Web Components</span>
+                <span class="stack-badge">JSON</span>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- STACK -->
+      <section class="section section-alt" id="stack">
+        <div class="container">
+          <h2 class="section-title">🛠️ Stack <span class="accent">Tecnológico</span></h2>
+          <p class="section-sub">Herramientas con las que construyo soluciones reales.</p>
+
+          <div class="stack-grid">
+            <div class="stack-category">
+              <h3 class="stack-cat-title">Frontend</h3>
+              <div class="stack-items">
+                <div class="stack-item"><span class="stack-icon">🌐</span>HTML5 Semántico</div>
+                <div class="stack-item"><span class="stack-icon">🎨</span>CSS3 Avanzado</div>
+                <div class="stack-item"><span class="stack-icon">⚡</span>JavaScript ES6+</div>
+                <div class="stack-item"><span class="stack-icon">🧩</span>Web Components</div>
+              </div>
+            </div>
+
+            <div class="stack-category">
+              <h3 class="stack-cat-title">Backend & Datos</h3>
+              <div class="stack-items">
+                <div class="stack-item"><span class="stack-icon">🐍</span>Python</div>
+                <div class="stack-item"><span class="stack-icon">🗄️</span>MySQL</div>
+              </div>
+            </div>
+
+            <div class="stack-category">
+              <h3 class="stack-cat-title">IA & Visión por Computadora</h3>
+              <div class="stack-items">
+                <div class="stack-item"><span class="stack-icon">🤖</span>Google Generative AI</div>
+                <div class="stack-item"><span class="stack-icon">👁️</span>FiftyOne</div>
+                <div class="stack-item"><span class="stack-icon">🖥️</span>Streamlit</div>
+              </div>
+            </div>
+
+            <div class="stack-category">
+              <h3 class="stack-cat-title">Herramientas</h3>
+              <div class="stack-items">
+                <div class="stack-item"><span class="stack-icon">🐙</span>Git & GitHub</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOBRE MÍ -->
+      <section class="section" id="sobre-mi">
+        <div class="container">
+          <h2 class="section-title">🧑‍💻 Sobre <span class="accent">Mí</span></h2>
+
+          <div class="about-grid">
+            <div class="about-text">
+              <p>Soy Juan Pablo Quintanilla, desarrollador de software junior de 18 años con base en Bucaramanga, Colombia. Me enfoco en frontend, arquitecturas modulares e integración de IA. Me formé de forma práctica — construyendo proyectos reales, participando en hackathons y resolviendo problemas concretos con código.</p>
+              <p>Creo que el buen código no necesita explicarse solo: habla por sí mismo. Me importa escribir soluciones que sean limpias, mantenibles y que soporten el paso del tiempo sin convertirse en deuda técnica.</p>
+              <p>Lo que más me apasiona es esa intersección entre interfaz y lógica — cuando una UI bien pensada se conecta con un sistema robusto por detrás y el resultado es una experiencia que simplemente funciona.</p>
+              <p>Trabajo bien en equipo, aprendo rápido y no le tengo miedo a los problemas difíciles. Actualmente estoy buscando oportunidades donde pueda seguir creciendo y aportar desde el primer día.</p>
+            </div>
+
+            <div class="about-values">
+              <div class="value-card">
+                <span class="value-icon">🧹</span>
+                <h4>Código Limpio</h4>
+                <p>El código que no se puede leer, no se puede mantener. Priorizo legibilidad sobre brevedad.</p>
+              </div>
+              <div class="value-card">
+                <span class="value-icon">🛡️</span>
+                <h4>Resiliencia</h4>
+                <p>Los sistemas fallan. Diseño pensando en los casos borde antes de que lleguen a producción.</p>
+              </div>
+              <div class="value-card">
+                <span class="value-icon">🤝</span>
+                <h4>Trabajo en Equipo</h4>
+                <p>Las mejores soluciones nacen de la colaboración. El ego no escala, el buen código sí.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACTO -->
+      <section class="section section-alt" id="contacto">
+        <div class="container">
+          <h2 class="section-title">📬 <span class="accent">Contacto</span></h2>
+          <p class="section-sub">¿Tienes un proyecto en mente o una oportunidad? Hablemos.</p>
+
+          <div class="contact-grid">
+            <a href="tel:+573216871995" class="contact-card">
+              <span class="contact-icon">📞</span>
+              <span class="contact-label">Teléfono</span>
+              <span class="contact-value">+57 321 687 1995</span>
+            </a>
+            <a href="mailto:juanpabloquuu7@gmail.com" class="contact-card">
+              <span class="contact-icon">✉️</span>
+              <span class="contact-label">Email</span>
+              <span class="contact-value">juanpabloquuu7@gmail.com</span>
+            </a>
+            <a href="https://www.linkedin.com/in/juan-quintanilla-6058a23a4/" target="_blank" rel="noopener" class="contact-card">
+              <span class="contact-icon">💼</span>
+              <span class="contact-label">LinkedIn</span>
+              <span class="contact-value">juan-quintanilla</span>
+            </a>
+            <a href="https://github.com/juanpabloquuu7-del" target="_blank" rel="noopener" class="contact-card">
+              <span class="contact-icon">🐙</span>
+              <span class="contact-label">GitHub</span>
+              <span class="contact-value">juanpabloquuu7-del</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Diseñado & construido por <span class="accent">Juan Pablo Quintanilla</span> · 2026</p>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>
