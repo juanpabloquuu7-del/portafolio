@@ -10,52 +10,86 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.z = 14;
 
-// Colores de la paleta
-const JADE = 0x1f7a63;
-const FOREST = 0x124136;
+// Colores de la paleta — versión luminosa
+const JADE = 0x22d6a3;
+const JADE_BRIGHT = 0x5cffce;
+const FOREST = 0x1f7a63;
 const MINT = 0xd5efe6;
+const MINT_GLOW = 0xaaffe0;
 
-// --- Campo de partículas (grano flotante) ---
-const PARTICLE_COUNT = 900;
+// --- Campo de partículas (grano flotante, con brillo aditivo) ---
+const PARTICLE_COUNT = 1400;
 const positions = new Float32Array(PARTICLE_COUNT * 3);
+const sizes = new Float32Array(PARTICLE_COUNT);
 for (let i = 0; i < PARTICLE_COUNT; i++) {
-  positions[i * 3] = (Math.random() - 0.5) * 40;
-  positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+  positions[i * 3] = (Math.random() - 0.5) * 42;
+  positions[i * 3 + 1] = (Math.random() - 0.5) * 42;
   positions[i * 3 + 2] = (Math.random() - 0.5) * 30 - 5;
+  sizes[i] = Math.random();
 }
 const particlesGeo = new THREE.BufferGeometry();
 particlesGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 const particlesMat = new THREE.PointsMaterial({
-  color: MINT,
-  size: 0.05,
+  color: MINT_GLOW,
+  size: 0.07,
   transparent: true,
-  opacity: 0.45,
+  opacity: 0.7,
   depthWrite: false,
+  blending: THREE.AdditiveBlending,
 });
 const particles = new THREE.Points(particlesGeo, particlesMat);
 scene.add(particles);
 
-// --- Formas 3D flotantes ---
+// --- Constelación: líneas entre partículas cercanas (efecto "red neuronal") ---
+const HUB_COUNT = 160;
+const hubPositions = [];
+for (let i = 0; i < HUB_COUNT; i++) {
+  hubPositions.push(
+    new THREE.Vector3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+  );
+}
+const linePoints = [];
+const LINK_DIST = 6.5;
+for (let i = 0; i < hubPositions.length; i++) {
+  for (let j = i + 1; j < hubPositions.length; j++) {
+    if (hubPositions[i].distanceTo(hubPositions[j]) < LINK_DIST) {
+      linePoints.push(hubPositions[i], hubPositions[j]);
+    }
+  }
+}
+const linesGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+const linesMat = new THREE.LineBasicMaterial({
+  color: JADE,
+  transparent: true,
+  opacity: 0.18,
+  blending: THREE.AdditiveBlending,
+});
+const constellation = new THREE.LineSegments(linesGeo, linesMat);
+particles.add(constellation);
+
+// --- Formas 3D flotantes (más brillantes) ---
 const shapes = [];
 const geometries = [
-  new THREE.IcosahedronGeometry(1.6, 0),
-  new THREE.TorusGeometry(1.1, 0.35, 16, 60),
-  new THREE.OctahedronGeometry(1.3, 0),
+  new THREE.IcosahedronGeometry(1.7, 0),
+  new THREE.TorusGeometry(1.15, 0.38, 16, 60),
+  new THREE.OctahedronGeometry(1.4, 0),
+  new THREE.TorusKnotGeometry(0.9, 0.25, 100, 16),
 ];
 const positionsShapes = [
   { x: 5.5, y: 1.5, z: 0 },
   { x: -6, y: -2, z: -3 },
   { x: 3, y: -3.5, z: -2 },
+  { x: -4, y: 3, z: -4 },
 ];
 
 geometries.forEach((geo, i) => {
   const wire = new THREE.Mesh(
     geo,
     new THREE.MeshBasicMaterial({
-      color: i === 1 ? FOREST : JADE,
+      color: i % 2 === 0 ? JADE_BRIGHT : FOREST,
       wireframe: true,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.65,
     })
   );
   const p = positionsShapes[i];
@@ -66,7 +100,6 @@ geometries.forEach((geo, i) => {
   shapes.push(wire);
 });
 
-// Luz ambiental sutil (no afecta wireframes pero deja el setup listo para mallas sólidas futuras)
 scene.add(new THREE.AmbientLight(MINT, 0.4));
 
 // --- Interactividad: parallax con el mouse ---
@@ -82,6 +115,35 @@ window.addEventListener("scroll", () => {
   scrollY = window.scrollY;
 });
 
+// --- Clic: destello expansivo que nace desde el centro de la escena ---
+const bursts = [];
+const raycastPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -4);
+const raycaster = new THREE.Raycaster();
+window.addEventListener("pointerdown", (e) => {
+  const ndc = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+  raycaster.setFromCamera(ndc, camera);
+  const point = new THREE.Vector3();
+  raycaster.ray.intersectPlane(raycastPlane, point);
+
+  const geo = new THREE.RingGeometry(0.05, 0.09, 48);
+  const mat = new THREE.MeshBasicMaterial({
+    color: JADE_BRIGHT,
+    transparent: true,
+    opacity: 0.9,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  });
+  const ring = new THREE.Mesh(geo, mat);
+  ring.position.copy(point || new THREE.Vector3(0, 0, 4));
+  ring.lookAt(camera.position);
+  ring.userData.life = 0;
+  scene.add(ring);
+  bursts.push(ring);
+});
+
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -93,19 +155,37 @@ const clock = new THREE.Clock();
 
 function animate() {
   const t = clock.getElapsedTime();
+  const dt = clock.getDelta();
 
-  particles.rotation.y = t * 0.015;
-  particles.rotation.x = t * 0.008;
+  particles.rotation.y = t * 0.02;
+  particles.rotation.x = t * 0.01;
+
+  // Pulso sutil de brillo en las partículas
+  particlesMat.opacity = 0.55 + Math.sin(t * 0.8) * 0.15;
 
   shapes.forEach((mesh) => {
     mesh.rotation.x += 0.002 * mesh.userData.speed * 10 * 0.01;
-    mesh.rotateOnAxis(mesh.userData.axis, 0.004 * mesh.userData.speed);
+    mesh.rotateOnAxis(mesh.userData.axis, 0.005 * mesh.userData.speed);
     mesh.position.y += Math.sin(t * mesh.userData.speed) * 0.001;
   });
 
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const ring = bursts[i];
+    ring.userData.life += dt;
+    const p = ring.userData.life / 1.1;
+    ring.scale.setScalar(1 + p * 26);
+    ring.material.opacity = Math.max(0, 0.9 * (1 - p));
+    if (p >= 1) {
+      scene.remove(ring);
+      ring.geometry.dispose();
+      ring.material.dispose();
+      bursts.splice(i, 1);
+    }
+  }
+
   // Parallax cámara según mouse
-  camera.position.x += (mouse.x * 1.4 - camera.position.x) * 0.03;
-  camera.position.y += (-mouse.y * 1.4 - camera.position.y) * 0.03;
+  camera.position.x += (mouse.x * 1.6 - camera.position.x) * 0.03;
+  camera.position.y += (-mouse.y * 1.6 - camera.position.y) * 0.03;
   camera.lookAt(0, 0, 0);
 
   // Leve desplazamiento con el scroll
