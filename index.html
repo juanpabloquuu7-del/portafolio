@@ -14,6 +14,8 @@
 
     <canvas id="bg3d"></canvas>
 
+    <div class="scroll-progress" id="scrollProgress"></div>
+
     <div class="cursor-ring" id="cursorRing"></div>
     <div class="cursor-dot" id="cursorDot"></div>
 
@@ -22,10 +24,11 @@
       <div class="nav-container">
         <span class="nav-logo">JP<span class="accent">.</span></span>
         <ul class="nav-links">
-          <li><a href="#proyectos">Proyectos</a></li>
-          <li><a href="#stack">Stack</a></li>
-          <li><a href="#sobre-mi">Sobre mí</a></li>
-          <li><a href="#contacto" class="btn-nav">Contacto</a></li>
+          <li><a href="#proyectos" data-en="Projects">Proyectos</a></li>
+          <li><a href="#stack" data-en="Stack">Stack</a></li>
+          <li><a href="#sobre-mi" data-en="About">Sobre mí</a></li>
+          <li><a href="#contacto" class="btn-nav" data-en="Contact">Contacto</a></li>
+          <li><button class="lang-toggle" id="langToggle" aria-label="Cambiar idioma / Switch language">EN</button></li>
         </ul>
         <button class="hamburger" id="hamburger" aria-label="Abrir menú">
           <span></span><span></span><span></span>
@@ -38,21 +41,21 @@
       <!-- HERO -->
       <section class="hero" id="hero">
         <div class="hero-content">
-          <p class="hero-greeting fade-in">Hola, soy</p>
+          <p class="hero-greeting fade-in" data-en="Hi, I'm">Hola, soy</p>
           <h1 class="hero-name fade-in">Juan Pablo<br /><span class="accent">Quintanilla</span></h1>
           <h2 class="hero-role fade-in">
-            Desarrollador Frontend & Software Developer
+            <span data-en="Frontend & Software Developer">Desarrollador Frontend & Software Developer</span>
             <br />
-            <span class="hero-role-sub">Especialista en Arquitectura Modular e IA</span>
+            <span class="hero-role-sub" data-en="Specialist in Modular Architecture & AI">Especialista en Arquitectura Modular e IA</span>
           </h2>
-          <p class="hero-tagline fade-in">
+          <p class="hero-tagline fade-in" data-en="I build clean, modular interfaces with purpose — from high-performance SPAs to AI modules that solve real problems.">
             Construyo interfaces limpias, modulares y con propósito —<br />
             desde SPAs de alto rendimiento hasta módulos de IA que resuelven problemas reales.
           </p>
           <div class="hero-ctas fade-in">
-            <a href="#proyectos" class="btn btn-primary">Ver Proyectos</a>
-            <a href="#contacto" class="btn btn-secondary">Contáctame</a>
-            <a href="cv.pdf" class="btn btn-ghost" download>Descargar CV</a>
+            <a href="#proyectos" class="btn btn-primary" data-en="View Projects">Ver Proyectos</a>
+            <a href="#contacto" class="btn btn-secondary" data-en="Contact Me">Contáctame</a>
+            <a href="cv.pdf" class="btn btn-ghost" download data-en="Download CV">Descargar CV</a>
           </div>
         </div>
         <div class="hero-decoration" aria-hidden="true">
@@ -61,7 +64,7 @@
             <div class="code-block">
               <span class="code-line"><span class="kw">const</span> dev <span class="op">=</span> {</span>
               <span class="code-line indent"><span class="prop">name</span>: <span class="str">"Juan Pablo"</span>,</span>
-              <span class="code-line indent"><span class="prop">focus</span>: <span class="str">"Frontend & IA"</span>,</span>
+              <span class="code-line indent"><span class="prop">focus</span>: <span class="str" data-en='"Frontend & AI"'>"Frontend & IA"</span>,</span>
               <span class="code-line indent"><span class="prop">available</span>: <span class="bool">true</span>,</span>
               <span class="code-line indent"><span class="prop">passion</span>: <span class="str">"Clean Code"</span></span>
               <span class="code-line">}</span>
@@ -73,8 +76,8 @@
       <!-- PROYECTOS -->
       <section class="section" id="proyectos">
         <div class="container">
-          <h2 class="section-title">Proyectos <span class="accent">Destacados</span></h2>
-          <p class="section-sub">Casos de estudio reales — problemas reales, soluciones reales.</p>
+          <h2 class="section-title"><span data-en="Featured">Proyectos</span> <span class="accent" data-en="Projects">Destacados</span></h2>
+          <p class="section-sub" data-en="Real case studies — real problems, real solutions.">Casos de estudio reales — problemas reales, soluciones reales.</p>
 
           <div class="projects-grid">
 
@@ -82,7 +85,7 @@
             <article class="project-card" data-index="0">
               <div class="project-header">
                 <div class="project-tags">
-                  <span class="tag tag-ai">IA</span>
+                  <span class="tag tag-ai" data-en="AI">IA</span>
                   <span class="tag tag-hackathon">Hackathon</span>
                   <span class="tag tag-python">Python</span>
                 </div>
@@ -93,22 +96,22 @@
                 </div>
               </div>
 
-              <h3 class="project-title">Módulo de Analítica Educativa con IA</h3>
+              <h3 class="project-title" data-en="AI-Powered Educational Analytics Module">Módulo de Analítica Educativa con IA</h3>
               <p class="project-event">Hackathon Campuslands 2026</p>
-              <p class="project-pitch">Agente de IA para engagement estudiantil que no se cae ni cuando la API sí.</p>
+              <p class="project-pitch" data-en="An AI agent for student engagement that doesn't go down — even when the API does.">Agente de IA para engagement estudiantil que no se cae ni cuando la API sí.</p>
 
               <div class="project-highlights">
                 <div class="highlight-chip">
-                  <span class="highlight-label">Caché MD5</span>
-                  <span class="highlight-text">Cero llamadas duplicadas a Gemini</span>
+                  <span class="highlight-label" data-en="MD5 Cache">Caché MD5</span>
+                  <span class="highlight-text" data-en="Zero duplicate calls to Gemini">Cero llamadas duplicadas a Gemini</span>
                 </div>
                 <div class="highlight-chip">
-                  <span class="highlight-label">Auto-resiliente</span>
-                  <span class="highlight-text">Fallback algorítmico ante error 429</span>
+                  <span class="highlight-label" data-en="Self-healing">Auto-resiliente</span>
+                  <span class="highlight-text" data-en="Algorithmic fallback on 429 errors">Fallback algorítmico ante error 429</span>
                 </div>
                 <div class="highlight-chip">
-                  <span class="highlight-label">Contra reloj</span>
-                  <span class="highlight-text">Entregado en tiempo de hackathon</span>
+                  <span class="highlight-label" data-en="Against the clock">Contra reloj</span>
+                  <span class="highlight-text" data-en="Delivered within hackathon time">Entregado en tiempo de hackathon</span>
                 </div>
               </div>
 
@@ -136,22 +139,22 @@
                 </div>
               </div>
 
-              <h3 class="project-title">E-commerce SPA de Moda</h3>
+              <h3 class="project-title" data-en="Fashion E-commerce SPA">E-commerce SPA de Moda</h3>
               <p class="project-event">Single Page Application — Vanilla JS</p>
-              <p class="project-pitch">Velocidad de SPA moderna sin un solo framework de por medio.</p>
+              <p class="project-pitch" data-en="Modern SPA speed without a single framework in the mix.">Velocidad de SPA moderna sin un solo framework de por medio.</p>
 
               <div class="project-highlights">
                 <div class="highlight-chip">
-                  <span class="highlight-label">Router propio</span>
-                  <span class="highlight-text">Navegación sin recargar la página</span>
+                  <span class="highlight-label" data-en="Custom router">Router propio</span>
+                  <span class="highlight-text" data-en="Navigation without reloading the page">Navegación sin recargar la página</span>
                 </div>
                 <div class="highlight-chip">
                   <span class="highlight-label">Web Components</span>
-                  <span class="highlight-text">UI 100% nativa y reutilizable</span>
+                  <span class="highlight-text" data-en="100% native, reusable UI">UI 100% nativa y reutilizable</span>
                 </div>
                 <div class="highlight-chip">
-                  <span class="highlight-label">Carrito en cliente</span>
-                  <span class="highlight-text">Estado gestionado sin backend</span>
+                  <span class="highlight-label" data-en="Client-side cart">Carrito en cliente</span>
+                  <span class="highlight-text" data-en="State managed without a backend">Estado gestionado sin backend</span>
                 </div>
               </div>
 
@@ -179,22 +182,22 @@
                 </div>
               </div>
 
-              <h3 class="project-title">Sistema de Gestión Comunitaria</h3>
-              <p class="project-event">Aplicación de escritorio en Python</p>
-              <p class="project-pitch">Administra vecinos, inventario y préstamos de una comunidad — sin base de datos.</p>
+              <h3 class="project-title" data-en="Community Management System">Sistema de Gestión Comunitaria</h3>
+              <p class="project-event" data-en="Python Desktop Application">Aplicación de escritorio en Python</p>
+              <p class="project-pitch" data-en="Manages a community's neighbors, inventory and loans — no database required.">Administra vecinos, inventario y préstamos de una comunidad — sin base de datos.</p>
 
               <div class="project-highlights">
                 <div class="highlight-chip">
-                  <span class="highlight-label">Roles separados</span>
-                  <span class="highlight-text">Menús distintos para admin y residente</span>
+                  <span class="highlight-label" data-en="Separate roles">Roles separados</span>
+                  <span class="highlight-text" data-en="Distinct menus for admin and resident">Menús distintos para admin y residente</span>
                 </div>
                 <div class="highlight-chip">
-                  <span class="highlight-label">Persistencia en JSON</span>
-                  <span class="highlight-text">Sin motor de base de datos</span>
+                  <span class="highlight-label" data-en="JSON persistence">Persistencia en JSON</span>
+                  <span class="highlight-text" data-en="No database engine needed">Sin motor de base de datos</span>
                 </div>
                 <div class="highlight-chip">
-                  <span class="highlight-label">Auditoría</span>
-                  <span class="highlight-text">Log de acciones en logs.txt</span>
+                  <span class="highlight-label" data-en="Audit trail">Auditoría</span>
+                  <span class="highlight-text" data-en="Action logging in logs.txt">Log de acciones en logs.txt</span>
                 </div>
               </div>
 
@@ -213,41 +216,41 @@
       <!-- STACK -->
       <section class="section section-alt" id="stack">
         <div class="container">
-          <h2 class="section-title">Stack <span class="accent">Tecnológico</span></h2>
-          <p class="section-sub">Herramientas con las que construyo soluciones reales.</p>
+          <h2 class="section-title" data-en="Tech Stack">Stack <span class="accent">Tecnológico</span></h2>
+          <p class="section-sub" data-en="Tools I use to build real solutions — each one backed by a project.">Herramientas con las que construyo soluciones reales — cada una respaldada por un proyecto.</p>
 
           <div class="stack-grid">
             <div class="stack-category">
               <h3 class="stack-cat-title">Frontend</h3>
               <div class="stack-items">
-                <div class="stack-item">HTML5 Semántico</div>
-                <div class="stack-item">CSS3 Avanzado</div>
-                <div class="stack-item">JavaScript ES6+</div>
-                <div class="stack-item">Web Components</div>
+                <div class="stack-item"><span data-en="Semantic HTML5">HTML5 Semántico</span><span class="stack-used">E-commerce SPA</span></div>
+                <div class="stack-item"><span data-en="Advanced CSS3">CSS3 Avanzado</span><span class="stack-used">E-commerce SPA</span></div>
+                <div class="stack-item"><span>JavaScript ES6+</span><span class="stack-used">E-commerce SPA</span></div>
+                <div class="stack-item"><span>Web Components</span><span class="stack-used">E-commerce SPA</span></div>
               </div>
             </div>
 
             <div class="stack-category">
-              <h3 class="stack-cat-title">Backend & Datos</h3>
+              <h3 class="stack-cat-title" data-en="Backend & Data">Backend & Datos</h3>
               <div class="stack-items">
-                <div class="stack-item">Python</div>
-                <div class="stack-item">MySQL</div>
+                <div class="stack-item"><span>Python</span><span class="stack-used" data-en="AI Analytics · Community Management">Analítica IA · Gestión Comunitaria</span></div>
+                <div class="stack-item"><span>MySQL</span><span class="stack-used" data-en="Academic coursework">Prácticas académicas</span></div>
               </div>
             </div>
 
             <div class="stack-category">
-              <h3 class="stack-cat-title">IA & Visión por Computadora</h3>
+              <h3 class="stack-cat-title" data-en="AI & Computer Vision">IA & Visión por Computadora</h3>
               <div class="stack-items">
-                <div class="stack-item">Google Generative AI</div>
-                <div class="stack-item">FiftyOne</div>
-                <div class="stack-item">Streamlit</div>
+                <div class="stack-item"><span>Google Generative AI</span><span class="stack-used" data-en="AI-Powered Educational Analytics">Analítica Educativa con IA</span></div>
+                <div class="stack-item"><span>FiftyOne</span><span class="stack-used" data-en="Computer vision coursework">Prácticas de visión por computadora</span></div>
+                <div class="stack-item"><span>Streamlit</span><span class="stack-used" data-en="AI-Powered Educational Analytics">Analítica Educativa con IA</span></div>
               </div>
             </div>
 
             <div class="stack-category">
-              <h3 class="stack-cat-title">Herramientas</h3>
+              <h3 class="stack-cat-title" data-en="Tools">Herramientas</h3>
               <div class="stack-items">
-                <div class="stack-item">Git & GitHub</div>
+                <div class="stack-item"><span>Git & GitHub</span><span class="stack-used" data-en="All 3 projects">Los 3 proyectos</span></div>
               </div>
             </div>
           </div>
@@ -257,28 +260,28 @@
       <!-- SOBRE MÍ -->
       <section class="section" id="sobre-mi">
         <div class="container">
-          <h2 class="section-title">Sobre <span class="accent">Mí</span></h2>
+          <h2 class="section-title"><span data-en="About">Sobre</span> <span class="accent" data-en="Me">Mí</span></h2>
 
           <div class="about-grid">
             <div class="about-text">
-              <p>Soy Juan Pablo Quintanilla, desarrollador de software junior de 18 años con base en Bucaramanga, Colombia. Me enfoco en frontend, arquitecturas modulares e integración de IA. Me formé de forma práctica — construyendo proyectos reales, participando en hackathons y resolviendo problemas concretos con código.</p>
-              <p>Soy participativo y constante: impulso las tareas manteniendo al equipo integrado mientras el trabajo avanza, y cuando algo no funciona prefiero explorar alternativas antes que forzar el mismo camino. Me relaciono con calidez, busco acuerdos con perspectivas distintas y me organizo alrededor de metas exigentes, aunque sostenerlas de forma constante — sin que nadie más marque el ritmo — es algo en lo que sigo trabajando activamente.</p>
-              <p>Creo que el buen código no necesita explicarse solo: habla por sí mismo. Me importa escribir soluciones limpias, mantenibles y transparentes — de la misma forma en que prefiero comunicar avances y decisiones de forma directa, sin dar rodeos.</p>
-              <p>Lo que más me apasiona es esa intersección entre interfaz y lógica — cuando una UI bien pensada se conecta con un sistema robusto por detrás y el resultado es una experiencia que simplemente funciona. Actualmente estoy buscando oportunidades donde pueda seguir creciendo y aportar desde el primer día.</p>
+              <p data-en="I'm Juan Pablo Quintanilla, an 18-year-old junior software developer based in Bucaramanga, Colombia. I focus on frontend, modular architectures and AI integration. I trained hands-on — building real projects, joining hackathons and solving concrete problems with code.">Soy Juan Pablo Quintanilla, desarrollador de software junior de 18 años con base en Bucaramanga, Colombia. Me enfoco en frontend, arquitecturas modulares e integración de IA. Me formé de forma práctica — construyendo proyectos reales, participando en hackathons y resolviendo problemas concretos con código.</p>
+              <p data-en="I'm participative and steady: I drive tasks forward while keeping the team integrated, and when something isn't working I'd rather explore an alternative than force the same path. I relate to people warmly, look for agreement across different perspectives, and organize myself around demanding goals — though sustaining that pace on my own, without anyone else setting it, is something I'm still actively working on.">Soy participativo y constante: impulso las tareas manteniendo al equipo integrado mientras el trabajo avanza, y cuando algo no funciona prefiero explorar alternativas antes que forzar el mismo camino. Me relaciono con calidez, busco acuerdos con perspectivas distintas y me organizo alrededor de metas exigentes, aunque sostenerlas de forma constante — sin que nadie más marque el ritmo — es algo en lo que sigo trabajando activamente.</p>
+              <p data-en="I believe good code doesn't need to explain itself — it speaks for itself. I care about writing solutions that are clean, maintainable and transparent, the same way I prefer to communicate progress and decisions directly, without beating around the bush.">Creo que el buen código no necesita explicarse solo: habla por sí mismo. Me importa escribir soluciones limpias, mantenibles y transparentes — de la misma forma en que prefiero comunicar avances y decisiones de forma directa, sin dar rodeos.</p>
+              <p data-en="What I'm most passionate about is the intersection between interface and logic — when a well-thought-out UI connects to a solid system behind it and the result is an experience that just works. I'm currently looking for opportunities where I can keep growing and contribute from day one.">Lo que más me apasiona es esa intersección entre interfaz y lógica — cuando una UI bien pensada se conecta con un sistema robusto por detrás y el resultado es una experiencia que simplemente funciona. Actualmente estoy buscando oportunidades donde pueda seguir creciendo y aportar desde el primer día.</p>
             </div>
 
             <div class="about-values">
               <div class="value-card">
-                <h4>Código Limpio</h4>
-                <p>El código que no se puede leer, no se puede mantener. Priorizo legibilidad sobre brevedad.</p>
+                <h4 data-en="Clean Code">Código Limpio</h4>
+                <p data-en="Code that can't be read can't be maintained. I prioritize readability over brevity.">El código que no se puede leer, no se puede mantener. Priorizo legibilidad sobre brevedad.</p>
               </div>
               <div class="value-card">
-                <h4>Colaboración Cálida</h4>
-                <p>Coordino esfuerzos y reconozco los aportes del equipo antes que imponer mi propio ritmo.</p>
+                <h4 data-en="Warm Collaboration">Colaboración Cálida</h4>
+                <p data-en="I coordinate efforts and recognize the team's contributions rather than impose my own pace.">Coordino esfuerzos y reconozco los aportes del equipo antes que imponer mi propio ritmo.</p>
               </div>
               <div class="value-card">
-                <h4>Mente Exploradora</h4>
-                <p>Ante un obstáculo, prefiero probar una táctica distinta a insistir con lo que ya no funciona.</p>
+                <h4 data-en="Exploratory Mindset">Mente Exploradora</h4>
+                <p data-en="Facing an obstacle, I'd rather try a different tactic than keep insisting on what isn't working.">Ante un obstáculo, prefiero probar una táctica distinta a insistir con lo que ya no funciona.</p>
               </div>
             </div>
           </div>
@@ -288,12 +291,12 @@
       <!-- CONTACTO -->
       <section class="section section-alt" id="contacto">
         <div class="container">
-          <h2 class="section-title"><span class="accent">Contacto</span></h2>
-          <p class="section-sub">¿Tienes un proyecto en mente o una oportunidad? Hablemos.</p>
+          <h2 class="section-title"><span class="accent" data-en="Contact">Contacto</span></h2>
+          <p class="section-sub" data-en="Got a project in mind or an opportunity? Let's talk.">¿Tienes un proyecto en mente o una oportunidad? Hablemos.</p>
 
           <div class="contact-grid">
             <a href="tel:+573216871995" class="contact-card">
-              <span class="contact-label">Teléfono</span>
+              <span class="contact-label" data-en="Phone">Teléfono</span>
               <span class="contact-value">+57 321 687 1995</span>
             </a>
             <a href="mailto:juanpabloquuu7@gmail.com" class="contact-card">
@@ -315,7 +318,7 @@
     </main>
 
     <footer class="footer">
-      <p>Diseñado & construido por <span class="accent">Juan Pablo Quintanilla</span> · 2026</p>
+      <p><span data-en="Designed & built by">Diseñado & construido por</span> <span class="accent">Juan Pablo Quintanilla</span> · 2026</p>
     </footer>
 
     <script type="importmap">
