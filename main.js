@@ -1,7 +1,62 @@
+// --- Selector de idioma ES / EN ---
+(function initLangToggle() {
+  const toggleBtn = document.getElementById('langToggle');
+  if (!toggleBtn) return;
+
+  const nodes = document.querySelectorAll('[data-en]');
+  nodes.forEach(el => {
+    el.dataset.es = el.textContent;
+  });
+
+  let isEnglish = false;
+
+  toggleBtn.addEventListener('click', () => {
+    isEnglish = !isEnglish;
+    document.documentElement.lang = isEnglish ? 'en' : 'es';
+    nodes.forEach(el => {
+      el.textContent = isEnglish ? el.dataset.en : el.dataset.es;
+    });
+    toggleBtn.textContent = isEnglish ? 'ES' : 'EN';
+  });
+})();
+
 // Navbar scroll effect
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
   navbar.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Barra de progreso de scroll
+const scrollProgress = document.getElementById('scrollProgress');
+function updateScrollProgress() {
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
+  if (scrollProgress) scrollProgress.style.width = `${pct}%`;
+}
+window.addEventListener('scroll', updateScrollProgress);
+updateScrollProgress();
+
+// Ripple de clic en cualquier parte de la página
+document.addEventListener('click', (e) => {
+  const ripple = document.createElement('div');
+  ripple.className = 'click-ripple';
+  ripple.style.left = `${e.clientX}px`;
+  ripple.style.top = `${e.clientY}px`;
+  document.body.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+});
+
+// Botones magnéticos — se acercan levemente al cursor
+document.querySelectorAll('.btn').forEach(el => {
+  el.addEventListener('mousemove', (e) => {
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    el.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+  });
+  el.addEventListener('mouseleave', () => {
+    el.style.transform = '';
+  });
 });
 
 // Hamburger menu
@@ -80,7 +135,7 @@ if (cursorDot && cursorRing && window.matchMedia('(hover: hover) and (pointer: f
     cursorRing.classList.remove('hidden');
   });
 
-  const interactiveSelector = 'a, button, .project-card, .stack-category, .value-card, .contact-card, .stack-badge, .tag';
+  const interactiveSelector = 'a, button, .project-card, .stack-category, .value-card, .contact-card, .stack-badge, .tag, .lang-toggle';
   document.querySelectorAll(interactiveSelector).forEach(el => {
     el.addEventListener('mouseenter', () => cursorRing.classList.add('active'));
     el.addEventListener('mouseleave', () => cursorRing.classList.remove('active'));

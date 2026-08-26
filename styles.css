@@ -6,13 +6,13 @@
   --bg-secondary: #0E1F17;
   --bg-card: #124136;
   --bg-card-hover: #164d40;
-  --accent: #1F7A63;
-  --accent-light: #2fa383;
-  --accent-glow: rgba(31, 122, 99, 0.2);
+  --accent: #22d6a3;
+  --accent-light: #7dffce;
+  --accent-glow: rgba(34, 214, 163, 0.35);
   --text-primary: #D5EFE6;
   --text-secondary: #9fc2b6;
   --text-muted: #5c7d72;
-  --border: rgba(31, 122, 99, 0.25);
+  --border: rgba(34, 214, 163, 0.3);
   --border-card: rgba(213, 239, 230, 0.08);
   --font-main: 'Inter', sans-serif;
   --font-code: 'Fira Code', monospace;
@@ -94,6 +94,42 @@ html, body, a, button, .project-card, .stack-category, .value-card, .contact-car
   }
 }
 
+/* Barra de progreso de scroll */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  box-shadow: 0 0 10px var(--accent-light);
+  z-index: 10000;
+  transition: width 0.1s ease-out;
+}
+
+/* Ripple de clic */
+.click-ripple {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--accent-light);
+  background: rgba(34, 214, 163, 0.15);
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleOut 0.6s ease-out forwards;
+}
+
+@keyframes rippleOut {
+  to {
+    transform: translate(-50%, -50%) scale(9);
+    opacity: 0;
+  }
+}
+
 /* =============================================
    3D BACKGROUND (Three.js)
 ============================================= */
@@ -172,6 +208,26 @@ main,
 .btn-nav:hover {
   background: var(--accent) !important;
   color: #fff !important;
+}
+
+.lang-toggle {
+  font-family: var(--font-code);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.lang-toggle:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
 }
 
 .hamburger {
@@ -269,8 +325,9 @@ main,
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.15s ease-out;
   display: inline-block;
+  will-change: transform;
 }
 
 .btn-primary {
@@ -368,8 +425,8 @@ main,
 /* =============================================
    SECTIONS
 ============================================= */
-.section { padding: 6rem 0; background: rgba(6, 9, 7, 0.55); }
-.section-alt { background: rgba(14, 31, 23, 0.7); }
+.section { padding: 6rem 0; background: rgba(6, 9, 7, 0.42); }
+.section-alt { background: rgba(14, 31, 23, 0.58); }
 
 .container {
   max-width: 1200px;
@@ -581,13 +638,24 @@ main,
 
 .stack-item {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.15rem;
   font-size: 0.92rem;
   color: var(--text-secondary);
   padding-left: 0.9rem;
   border-left: 2px solid var(--border-card);
   transition: border-color var(--transition), color var(--transition), transform var(--transition);
+}
+
+.stack-used {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.stack-item:hover .stack-used {
+  color: var(--accent-light);
 }
 
 .stack-item:hover {
