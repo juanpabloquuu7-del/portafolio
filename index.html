@@ -4,33 +4,54 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Portafolio de Juan Pablo Quintanilla — Desarrollador Frontend & Software Developer especialista en Arquitectura Modular e IA." />
+    <meta name="author" content="Juan Pablo Quintanilla" />
+    <meta name="theme-color" content="#060907" />
+    <meta name="color-scheme" content="dark" />
     <title>Juan Pablo Quintanilla | Developer Portfolio</title>
-    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Open Graph / redes sociales -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:site_name" content="Juan Pablo Quintanilla" />
+    <meta property="og:title" content="Juan Pablo Quintanilla | Developer Portfolio" />
+    <meta property="og:description" content="Portafolio de Juan Pablo Quintanilla — Desarrollador Frontend & Software Developer especialista en Arquitectura Modular e IA." />
+    <meta property="og:url" content="https://juanpabloquuu7-del.github.io/portafolio/" />
+    <meta property="og:image" content="https://juanpabloquuu7-del.github.io/portafolio/juan.png" />
+    <meta property="og:image:width" content="800" />
+    <meta property="og:image:height" content="994" />
+    <meta property="og:image:alt" content="Juan Pablo Quintanilla" />
+    <meta name="twitter:card" content="summary" />
+
+    <script>document.documentElement.classList.add('js');</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
 
-    <canvas id="bg3d"></canvas>
+    <a class="skip-link" href="#proyectos" data-en="Skip to projects">Saltar a los proyectos</a>
 
-    <div class="scroll-progress" id="scrollProgress"></div>
+    <canvas id="bg3d" aria-hidden="true"></canvas>
 
-    <div class="cursor-ring" id="cursorRing"></div>
-    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+    <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+    <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
 
     <!-- NAV -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" aria-label="Principal" data-aria-en="Main">
       <div class="nav-container">
-        <span class="nav-logo">JP<span class="accent">.</span></span>
-        <ul class="nav-links">
+        <a href="#hero" class="nav-logo" aria-label="Inicio" data-aria-en="Home">JP<span class="accent">.</span></a>
+        <ul class="nav-links" id="navLinks">
           <li><a href="#proyectos" data-en="Projects">Proyectos</a></li>
           <li><a href="#stack" data-en="Stack">Stack</a></li>
           <li><a href="#sobre-mi" data-en="About">Sobre mí</a></li>
           <li><a href="#contacto" class="btn-nav" data-en="Contact">Contacto</a></li>
-          <li><button class="lang-toggle" id="langToggle" aria-label="Cambiar idioma / Switch language">EN</button></li>
+          <li><button type="button" class="lang-toggle" id="langToggle" aria-label="Cambiar idioma a inglés" data-aria-en="Switch language to Spanish">EN</button></li>
         </ul>
-        <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+        <button type="button" class="hamburger" id="hamburger" aria-label="Abrir menú" data-aria-en="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -41,6 +62,7 @@
       <!-- HERO -->
       <section class="hero" id="hero">
         <div class="hero-content">
+          <p class="hero-status fade-in"><span class="status-dot" aria-hidden="true"></span><span data-en="Open to junior roles &amp; freelance projects">Disponible para roles junior y proyectos freelance</span></p>
           <p class="hero-greeting fade-in" data-en="Hi, I'm">Hola, soy</p>
           <h1 class="hero-name fade-in">Juan Pablo<br /><span class="accent">Quintanilla</span></h1>
           <h2 class="hero-role fade-in">
@@ -49,18 +71,18 @@
             <span class="hero-role-sub" data-en="Specialist in Modular Architecture & AI">Especialista en Arquitectura Modular e IA</span>
           </h2>
           <p class="hero-tagline fade-in" data-en="I build clean, modular interfaces with purpose — from high-performance SPAs to AI modules that solve real problems.">
-            Construyo interfaces limpias, modulares y con propósito —<br />
+            Construyo interfaces limpias, modulares y con propósito —
             desde SPAs de alto rendimiento hasta módulos de IA que resuelven problemas reales.
           </p>
           <div class="hero-ctas fade-in">
-            <a href="#proyectos" class="btn btn-primary" data-en="View Projects">Ver Proyectos</a>
+            <a href="#proyectos" class="btn btn-primary"><span data-en="View Projects">Ver Proyectos</span><span class="btn-arrow" aria-hidden="true">→</span></a>
             <a href="#contacto" class="btn btn-secondary" data-en="Contact Me">Contáctame</a>
             <a href="cv.pdf" class="btn btn-ghost" download data-en="Download CV">Descargar CV</a>
           </div>
         </div>
         <div class="hero-decoration" aria-hidden="true">
           <div class="hero-photo-wrap">
-            <img src="juan.png" alt="" class="hero-photo" />
+            <img src="juan.png" alt="" class="hero-photo" width="800" height="994" decoding="async" fetchpriority="high" />
             <div class="code-block">
               <span class="code-line"><span class="kw">const</span> dev <span class="op">=</span> {</span>
               <span class="code-line indent"><span class="prop">name</span>: <span class="str">"Juan Pablo"</span>,</span>
@@ -74,58 +96,52 @@
       </section>
 
       <!-- PROYECTOS -->
-      <section class="section" id="proyectos">
+      <section class="section" id="proyectos" tabindex="-1">
         <div class="container">
           <h2 class="section-title"><span data-en="Featured">Proyectos</span> <span class="accent" data-en="Projects">Destacados</span></h2>
           <p class="section-sub" data-en="Real case studies — real problems, real solutions.">Casos de estudio reales — problemas reales, soluciones reales.</p>
 
           <div class="projects-grid">
-
-            <!-- Proyecto 1 -->
-            <article class="project-card" data-index="0">
+            <article class="project-card project-card--featured" data-index="0">
               <div class="project-header">
-                <div class="project-tags">
-                  <span class="tag tag-ai" data-en="AI">IA</span>
-                  <span class="tag tag-hackathon">Hackathon</span>
-                  <span class="tag tag-python">Python</span>
-                </div>
-                <div class="project-links">
-                  <a href="https://github.com/alejandro-xoxo/HachatonCampuslans2026.git" target="_blank" rel="noopener" aria-label="Ver repositorio">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                  </a>
-                </div>
+                <div class="project-tags"><span class="tag tag-frontend">Frontend</span><span class="tag tag-js">three.js</span><span class="tag tag-spa">PWA</span></div>
+                <div class="project-links"><a href="https://juanpabloquuu7-del.github.io/hotel-web/" target="_blank" rel="noopener" class="live-link"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg><span data-en="Live site">Ver sitio en vivo</span></a><a href="https://github.com/juanpabloquuu7-del/hotel-web" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
               </div>
-
-              <h3 class="project-title" data-en="AI-Powered Educational Analytics Module">Módulo de Analítica Educativa con IA</h3>
-              <p class="project-event">Hackathon Campuslands 2026</p>
-              <p class="project-pitch" data-en="An AI agent for student engagement that doesn't go down — even when the API does.">Agente de IA para engagement estudiantil que no se cae ni cuando la API sí.</p>
-
-              <div class="project-highlights">
-                <div class="highlight-chip">
-                  <span class="highlight-label" data-en="MD5 Cache">Caché MD5</span>
-                  <span class="highlight-text" data-en="Zero duplicate calls to Gemini">Cero llamadas duplicadas a Gemini</span>
-                </div>
-                <div class="highlight-chip">
-                  <span class="highlight-label" data-en="Self-healing">Auto-resiliente</span>
-                  <span class="highlight-text" data-en="Algorithmic fallback on 429 errors">Fallback algorítmico ante error 429</span>
-                </div>
-                <div class="highlight-chip">
-                  <span class="highlight-label" data-en="Against the clock">Contra reloj</span>
-                  <span class="highlight-text" data-en="Delivered within hackathon time">Entregado en tiempo de hackathon</span>
-                </div>
-              </div>
-
-              <div class="project-stack">
-                <span class="stack-badge">Python</span>
-                <span class="stack-badge">Streamlit</span>
-                <span class="stack-badge">Gemini 2.0</span>
-                <span class="stack-badge">Google GenAI SDK</span>
-                <span class="stack-badge">hashlib</span>
-              </div>
+              <h3 class="project-title" data-en="Hotel Chicamocha · 3D Tour Website">Hotel Chicamocha · Sitio con recorrido 3D</h3>
+              <p class="project-event" data-en="Solo project — from zero to production">Proyecto individual — de cero a producción</p>
+              <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Solo project: design, development, 3D scene, SEO and PWA.">proyecto individual: diseño, desarrollo, escena 3D, SEO y PWA.</span></p>
+              <p class="project-pitch" data-en="A hotel you explore in 3D and book via WhatsApp in one click.">Un hotel que se recorre en 3D y se reserva por WhatsApp en un clic.</p>
+              <div class="project-highlights"><div class="highlight-chip"><span class="highlight-label" data-en="Interactive 3D building">Edificio en 3D</span><span class="highlight-text" data-en="Walkthrough and room finder">Recorrido y búsqueda de habitación</span></div><div class="highlight-chip"><span class="highlight-label">PWA</span><span class="highlight-text" data-en="Installable, with service worker and manifest">Instalable, con service worker y manifest</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Direct booking">Reserva directa</span><span class="highlight-text" data-en="WhatsApp and phone, no middlemen">WhatsApp y llamada, sin intermediarios</span></div></div>
+              <div class="project-stack"><span class="stack-badge">HTML5</span><span class="stack-badge">CSS3</span><span class="stack-badge">JavaScript</span><span class="stack-badge">three.js</span><span class="stack-badge">Service Worker</span></div>
             </article>
 
-            <!-- Proyecto 2 -->
             <article class="project-card" data-index="1">
+              <div class="project-header">
+                <div class="project-tags"><span class="tag tag-ai" data-en="AI">IA</span><span class="tag tag-hackathon">Hackathon</span><span class="tag tag-python">Python</span></div>
+                <div class="project-links"><a href="https://github.com/alejandro-xoxo/HachatonCampuslans2026.git" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
+              </div>
+              <h3 class="project-title" data-en="AI-Powered Educational Analytics Module">Módulo de Analítica Educativa con IA</h3>
+              <p class="project-event" data-en="Campuslands Hackathon 2026 · team of 2">Hackathon Campuslands 2026 · equipo de 2</p>
+              <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Full frontend and complete AI (Gemini) integration. Backend and data built with my teammate.">frontend completo e integración completa de la IA (Gemini). Backend y datos junto a mi compañero.</span></p>
+              <p class="project-pitch" data-en="An AI agent for student engagement that doesn't go down — even when the API does.">Agente de IA para engagement estudiantil que no se cae ni cuando la API sí.</p>
+              <div class="project-highlights"><div class="highlight-chip"><span class="highlight-label" data-en="MD5 Cache">Caché MD5</span><span class="highlight-text" data-en="Zero duplicate calls to Gemini">Cero llamadas duplicadas a Gemini</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Self-healing">Auto-resiliente</span><span class="highlight-text" data-en="Algorithmic fallback on 429 errors">Fallback algorítmico ante error 429</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Against the clock">Contra reloj</span><span class="highlight-text" data-en="Delivered within hackathon time">Entregado en tiempo de hackathon</span></div></div>
+              <div class="project-stack"><span class="stack-badge">Python</span><span class="stack-badge">Streamlit</span><span class="stack-badge">Gemini 2.0</span><span class="stack-badge">Google GenAI SDK</span><span class="stack-badge">hashlib</span></div>
+            </article>
+
+            <article class="project-card" data-index="2">
+              <div class="project-header">
+                <div class="project-tags"><span class="tag tag-python">Java 17</span><span class="tag tag-ai">MySQL</span><span class="tag tag-hackathon">ERP</span></div>
+                <div class="project-links"><a href="https://github.com/juanpabloquuu7-del/little-horizons-erp-v2" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
+              </div>
+              <h3 class="project-title" data-en="Little Horizons School ERP">ERP Colegio Little Horizons</h3>
+              <p class="project-event" data-en="School management system · team of 2">Sistema de gestión educativa · equipo de 2</p>
+              <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Business logic (service layer), controllers and console menus; scholarships and finance. My teammate: database, DAOs and models.">lógica de negocio (capa service), controladores y menús de consola; becas y finanzas. Mi compañero: base de datos, DAO y modelos.</span></p>
+              <p class="project-pitch" data-en="Grades, clubs, inventory and billing for a 500+ student school in a single database.">Notas, clubes, inventario y facturación de un colegio de 500+ estudiantes en una sola base de datos.</p>
+              <div class="project-highlights"><div class="highlight-chip"><span class="highlight-label" data-en="E-invoicing">Factura electrónica</span><span class="highlight-text" data-en="PDF with CUFE and QR (simulated)">PDF con CUFE y QR (simulada)</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Scholarships & payments">Becas y pagos</span><span class="highlight-text" data-en="Discounts applied to suggested amounts">Descuentos aplicados al valor sugerido</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Reports">Reportes</span><span class="highlight-text" data-en="Averages and absence alerts">Promedios y alertas de inasistencia</span></div></div>
+              <div class="project-stack"><span class="stack-badge">Java 17</span><span class="stack-badge">MySQL 8</span><span class="stack-badge">Maven</span><span class="stack-badge">JDBC</span><span class="stack-badge">Arquitectura por capas</span></div>
+            </article>
+
+            <article class="project-card" data-index="3">
               <div class="project-header">
                 <div class="project-tags">
                   <span class="tag tag-frontend">Frontend</span>
@@ -133,14 +149,16 @@
                   <span class="tag tag-js">Vanilla JS</span>
                 </div>
                 <div class="project-links">
-                  <a href="https://github.com/juanpabloquuu7-del/Proyecto_E-commerce_quintanillajuan.git" target="_blank" rel="noopener" aria-label="Ver repositorio">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  <a href="https://juanpabloquuu7-del.github.io/Proyecto_E-commerce_quintanillajuan/#/" target="_blank" rel="noopener" class="live-link"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg><span data-en="Live site">Ver sitio en vivo</span></a>
+                  <a href="https://github.com/juanpabloquuu7-del/Proyecto_E-commerce_quintanillajuan.git" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub">
+                    <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   </a>
                 </div>
               </div>
 
               <h3 class="project-title" data-en="Fashion E-commerce SPA">E-commerce SPA de Moda</h3>
               <p class="project-event">Single Page Application — Vanilla JS</p>
+              <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Solo project: architecture, custom router, Web Components and cart state.">proyecto individual: arquitectura, router propio, Web Components y estado del carrito.</span></p>
               <p class="project-pitch" data-en="Modern SPA speed without a single framework in the mix.">Velocidad de SPA moderna sin un solo framework de por medio.</p>
 
               <div class="project-highlights">
@@ -167,8 +185,7 @@
               </div>
             </article>
 
-            <!-- Proyecto 3 -->
-            <article class="project-card" data-index="2">
+            <article class="project-card" data-index="4">
               <div class="project-header">
                 <div class="project-tags">
                   <span class="tag tag-python">Python</span>
@@ -176,14 +193,15 @@
                   <span class="tag tag-ai">Backend</span>
                 </div>
                 <div class="project-links">
-                  <a href="https://github.com/juanpabloquuu7-del/python.git" target="_blank" rel="noopener" aria-label="Ver repositorio">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                  <a href="https://github.com/juanpabloquuu7-del/python.git" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub">
+                    <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                   </a>
                 </div>
               </div>
 
               <h3 class="project-title" data-en="Community Management System">Sistema de Gestión Comunitaria</h3>
               <p class="project-event" data-en="Python Desktop Application">Aplicación de escritorio en Python</p>
+              <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Solo project: design, role-based logic, persistence and audit log.">proyecto individual: diseño, lógica por roles, persistencia y auditoría.</span></p>
               <p class="project-pitch" data-en="Manages a community's neighbors, inventory and loans — no database required.">Administra vecinos, inventario y préstamos de una comunidad — sin base de datos.</p>
 
               <div class="project-highlights">
@@ -216,7 +234,7 @@
       <!-- STACK -->
       <section class="section section-alt" id="stack">
         <div class="container">
-          <h2 class="section-title" data-en="Tech Stack">Stack <span class="accent">Tecnológico</span></h2>
+          <h2 class="section-title"><span data-en="Tech">Stack</span> <span class="accent" data-en="Stack">Tecnológico</span></h2>
           <p class="section-sub" data-en="Tools I use to build real solutions — each one backed by a project.">Herramientas con las que construyo soluciones reales — cada una respaldada por un proyecto.</p>
 
           <div class="stack-grid">
@@ -225,7 +243,8 @@
               <div class="stack-items">
                 <div class="stack-item"><span data-en="Semantic HTML5">HTML5 Semántico</span><span class="stack-used">E-commerce SPA</span></div>
                 <div class="stack-item"><span data-en="Advanced CSS3">CSS3 Avanzado</span><span class="stack-used">E-commerce SPA</span></div>
-                <div class="stack-item"><span>JavaScript ES6+</span><span class="stack-used">E-commerce SPA</span></div>
+                <div class="stack-item"><span>JavaScript ES6+</span><span class="stack-used">Hotel · E-commerce SPA</span></div>
+                <div class="stack-item"><span>three.js</span><span class="stack-used" data-en="Hotel 3D tour">Hotel · recorrido 3D</span></div>
                 <div class="stack-item"><span>Web Components</span><span class="stack-used">E-commerce SPA</span></div>
               </div>
             </div>
@@ -234,7 +253,8 @@
               <h3 class="stack-cat-title" data-en="Backend & Data">Backend & Datos</h3>
               <div class="stack-items">
                 <div class="stack-item"><span>Python</span><span class="stack-used" data-en="AI Analytics · Community Management">Analítica IA · Gestión Comunitaria</span></div>
-                <div class="stack-item"><span>MySQL</span><span class="stack-used" data-en="Academic coursework">Prácticas académicas</span></div>
+                <div class="stack-item"><span>Java 17</span><span class="stack-used" data-en="School ERP">ERP Colegio</span></div>
+                <div class="stack-item"><span>MySQL</span><span class="stack-used" data-en="School ERP">ERP Colegio</span></div>
               </div>
             </div>
 
@@ -250,7 +270,7 @@
             <div class="stack-category">
               <h3 class="stack-cat-title" data-en="Tools">Herramientas</h3>
               <div class="stack-items">
-                <div class="stack-item"><span>Git & GitHub</span><span class="stack-used" data-en="All 3 projects">Los 3 proyectos</span></div>
+                <div class="stack-item"><span>Git & GitHub</span><span class="stack-used" data-en="All 5 projects">Los 5 proyectos</span></div>
               </div>
             </div>
           </div>
@@ -264,8 +284,8 @@
 
           <div class="about-grid">
             <div class="about-text">
-              <p data-en="I'm Juan Pablo Quintanilla, an 18-year-old junior software developer based in Bucaramanga, Colombia. I focus on frontend, modular architectures and AI integration. I trained hands-on — building real projects, joining hackathons and solving concrete problems with code.">Soy Juan Pablo Quintanilla, desarrollador de software junior de 18 años con base en Bucaramanga, Colombia. Me enfoco en frontend, arquitecturas modulares e integración de IA. Me formé de forma práctica — construyendo proyectos reales, participando en hackathons y resolviendo problemas concretos con código.</p>
-              <p data-en="I'm participative and steady: I drive tasks forward while keeping the team integrated, and when something isn't working I'd rather explore an alternative than force the same path. I relate to people warmly, look for agreement across different perspectives, and organize myself around demanding goals — though sustaining that pace on my own, without anyone else setting it, is something I'm still actively working on.">Soy participativo y constante: impulso las tareas manteniendo al equipo integrado mientras el trabajo avanza, y cuando algo no funciona prefiero explorar alternativas antes que forzar el mismo camino. Me relaciono con calidez, busco acuerdos con perspectivas distintas y me organizo alrededor de metas exigentes, aunque sostenerlas de forma constante — sin que nadie más marque el ritmo — es algo en lo que sigo trabajando activamente.</p>
+              <p data-en="I'm Juan Pablo Quintanilla, an 18-year-old junior software developer based in Bucaramanga, Colombia. I focus on frontend, modular architectures and AI integration, and I also work with Java and MySQL. I trained hands-on — building real projects, joining hackathons and solving concrete problems with code.">Soy Juan Pablo Quintanilla, desarrollador de software junior de 18 años con base en Bucaramanga, Colombia. Me enfoco en frontend, arquitecturas modulares e integración de IA, y también trabajo con Java y MySQL. Me formé de forma práctica — construyendo proyectos reales, participando en hackathons y resolviendo problemas concretos con código.</p>
+              <p data-en="I'm participative and steady: I drive tasks forward while keeping the team integrated, and when something isn't working I'd rather explore an alternative than force the same path. I relate to people warmly, look for agreement across different perspectives, and organize myself around demanding goals.">Soy participativo y constante: impulso las tareas manteniendo al equipo integrado mientras el trabajo avanza, y cuando algo no funciona prefiero explorar alternativas antes que forzar el mismo camino. Me relaciono con calidez, busco acuerdos con perspectivas distintas y me organizo alrededor de metas exigentes.</p>
               <p data-en="I believe good code doesn't need to explain itself — it speaks for itself. I care about writing solutions that are clean, maintainable and transparent, the same way I prefer to communicate progress and decisions directly, without beating around the bush.">Creo que el buen código no necesita explicarse solo: habla por sí mismo. Me importa escribir soluciones limpias, mantenibles y transparentes — de la misma forma en que prefiero comunicar avances y decisiones de forma directa, sin dar rodeos.</p>
               <p data-en="What I'm most passionate about is the intersection between interface and logic — when a well-thought-out UI connects to a solid system behind it and the result is an experience that just works. I'm currently looking for opportunities where I can keep growing and contribute from day one.">Lo que más me apasiona es esa intersección entre interfaz y lógica — cuando una UI bien pensada se conecta con un sistema robusto por detrás y el resultado es una experiencia que simplemente funciona. Actualmente estoy buscando oportunidades donde pueda seguir creciendo y aportar desde el primer día.</p>
             </div>
