@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#060907" />
+    <meta name="color-scheme" content="dark" />
+    <title>Página no encontrada | Juan Pablo Quintanilla</title>
+    <link rel="icon" href="/portafolio/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #060907; --card: #0f2a22; --accent: #22d6a3; --accent-light: #7dffce;
+        --on-accent: #03140e; --text: #e2f4ed; --text-2: #aecdc2; --border: rgba(213, 239, 230, 0.1);
+      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh; min-height: 100svh;
+        display: grid; place-items: center;
+        padding: 1rem;
+        background: var(--bg); color: var(--text);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+      }
+      main {
+        width: 100%; max-width: 30rem;
+        background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+        padding: 2rem 1.5rem;
+      }
+      .code { font-family: ui-monospace, Consolas, monospace; color: var(--accent); font-size: 0.875rem; margin-bottom: 0.5rem; }
+      h1 { font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 0.75rem; }
+      p { color: var(--text-2); }
+      .en { margin-top: 0.25rem; font-size: 0.875rem; }
+      a.btn {
+        display: inline-block; min-height: 48px; margin-top: 1.5rem; line-height: 1.5;
+        padding: 0.75rem 1.5rem; border-radius: 8px;
+        background: var(--accent); color: var(--on-accent); font-weight: 600; text-decoration: none;
+        transition: background-color 0.2s ease;
+      }
+      a.btn:hover { background: var(--accent-light); }
+      a:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="code">404</p>
+      <h1>Esta página no existe</h1>
+      <p>Puede que el enlace esté mal escrito o que la página se haya movido.</p>
+      <p class="en" lang="en">This page doesn't exist — the link may be mistyped or the page may have moved.</p>
+      <a class="btn" href="/portafolio/">Volver al portafolio · <span lang="en">Back to portfolio</span></a>
+    </main>
+  </body>
+</html>

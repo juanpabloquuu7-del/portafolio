@@ -17,6 +17,12 @@ const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matc
     el.dataset.ariaEs = el.getAttribute('aria-label') || '';
   });
 
+  // alt traducible (imágenes)
+  const altNodes = document.querySelectorAll('[data-alt-en]');
+  altNodes.forEach(el => {
+    el.dataset.altEs = el.getAttribute('alt') || '';
+  });
+
   let isEnglish = false;
 
   toggleBtn.addEventListener('click', () => {
@@ -27,6 +33,9 @@ const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matc
     });
     ariaNodes.forEach(el => {
       el.setAttribute('aria-label', isEnglish ? el.dataset.ariaEn : el.dataset.ariaEs);
+    });
+    altNodes.forEach(el => {
+      el.setAttribute('alt', isEnglish ? el.dataset.altEn : el.dataset.altEs);
     });
     toggleBtn.textContent = isEnglish ? 'ES' : 'EN';
     toggleBtn.lang = isEnglish ? 'es' : 'en';
@@ -122,7 +131,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Intersection Observer — revela las tarjetas al hacer scroll
-const revealTargets = document.querySelectorAll('.project-card, .stack-category, .value-card, .contact-card');
+const revealTargets = document.querySelectorAll('.project-card, .service-card, .stack-category, .value-card, .contact-card');
 
 if (reducedMotion || !('IntersectionObserver' in window)) {
   revealTargets.forEach(el => el.classList.add('visible'));

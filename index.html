@@ -17,11 +17,35 @@
     <meta property="og:title" content="Juan Pablo Quintanilla | Developer Portfolio" />
     <meta property="og:description" content="Portafolio de Juan Pablo Quintanilla — Desarrollador Frontend & Software Developer especialista en Arquitectura Modular e IA." />
     <meta property="og:url" content="https://juanpabloquuu7-del.github.io/portafolio/" />
-    <meta property="og:image" content="https://juanpabloquuu7-del.github.io/portafolio/juan.png" />
-    <meta property="og:image:width" content="800" />
-    <meta property="og:image:height" content="994" />
+    <meta property="og:image" content="https://juanpabloquuu7-del.github.io/portafolio/img/juan-og.jpg" />
+    <meta property="og:image:width" content="600" />
+    <meta property="og:image:height" content="746" />
     <meta property="og:image:alt" content="Juan Pablo Quintanilla" />
     <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href="https://juanpabloquuu7-del.github.io/portafolio/" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Juan Pablo Quintanilla",
+      "jobTitle": "Frontend & Software Developer",
+      "url": "https://juanpabloquuu7-del.github.io/portafolio/",
+      "image": "https://juanpabloquuu7-del.github.io/portafolio/img/juan-og.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Bucaramanga",
+        "addressRegion": "Santander",
+        "addressCountry": "CO"
+      },
+      "knowsAbout": ["JavaScript", "HTML", "CSS", "three.js", "Web Components", "Python", "Java", "MySQL", "Google Gemini API"],
+      "sameAs": [
+        "https://github.com/juanpabloquuu7-del",
+        "https://www.linkedin.com/in/juan-quintanilla-6058a23a4/"
+      ]
+    }
+    </script>
 
     <script>document.documentElement.classList.add('js');</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,6 +70,7 @@
         <a href="#hero" class="nav-logo" aria-label="Inicio" data-aria-en="Home">JP<span class="accent">.</span></a>
         <ul class="nav-links" id="navLinks">
           <li><a href="#proyectos" data-en="Projects">Proyectos</a></li>
+          <li><a href="#servicios" data-en="Services">Servicios</a></li>
           <li><a href="#stack" data-en="Stack">Stack</a></li>
           <li><a href="#sobre-mi" data-en="About">Sobre mí</a></li>
           <li><a href="#contacto" class="btn-nav" data-en="Contact">Contacto</a></li>
@@ -82,7 +107,7 @@
         </div>
         <div class="hero-decoration" aria-hidden="true">
           <div class="hero-photo-wrap">
-            <img src="juan.png" alt="" class="hero-photo" width="800" height="994" decoding="async" fetchpriority="high" />
+            <img src="img/juan.webp" alt="" class="hero-photo" width="600" height="746" decoding="async" fetchpriority="high" />
             <div class="code-block">
               <span class="code-line"><span class="kw">const</span> dev <span class="op">=</span> {</span>
               <span class="code-line indent"><span class="prop">name</span>: <span class="str">"Juan Pablo"</span>,</span>
@@ -99,23 +124,53 @@
       <section class="section" id="proyectos" tabindex="-1">
         <div class="container">
           <h2 class="section-title"><span data-en="Featured">Proyectos</span> <span class="accent" data-en="Projects">Destacados</span></h2>
-          <p class="section-sub" data-en="Real case studies — real problems, real solutions.">Casos de estudio reales — problemas reales, soluciones reales.</p>
+          <p class="section-sub" data-en="Personal, academic and hackathon projects — with exactly what I contributed to each one.">Proyectos propios, académicos y de hackathon — con lo que aporté exactamente en cada uno.</p>
 
           <div class="projects-grid">
-            <article class="project-card project-card--featured" data-index="0">
+            <article class="project-card project-card--featured" data-index="0" id="proyecto-hotel">
+              <figure class="project-media">
+                <div class="media-bar" aria-hidden="true"><span class="media-dots"><i></i><i></i><i></i></span><span class="media-url">juanpabloquuu7-del.github.io/hotel-web</span></div>
+                <picture class="media-body">
+                  <source srcset="img/hotel-chicamocha.webp" type="image/webp" />
+                  <img src="img/hotel-chicamocha.jpg" width="1280" height="620" loading="lazy" decoding="async" alt="Captura real de la portada del prototipo Hotel Chicamocha: titular «Tu hotel amigo en el corazón de Bucaramanga» sobre una foto de la piscina, con botones para consultar disponibilidad y recorrer el hotel en 3D." data-alt-en="Real screenshot of the Hotel Chicamocha prototype homepage: headline “Your friendly hotel in the heart of Bucaramanga” over a pool photo, with buttons to check availability and tour the hotel in 3D." />
+                </picture>
+              </figure>
               <div class="project-header">
-                <div class="project-tags"><span class="tag tag-frontend">Frontend</span><span class="tag tag-js">three.js</span><span class="tag tag-spa">PWA</span></div>
+                <div class="project-tags"><span class="tag tag-proto" data-en="Prototype">Prototipo</span><span class="tag tag-frontend">Frontend</span><span class="tag tag-js">three.js</span><span class="tag tag-spa">PWA</span></div>
                 <div class="project-links"><a href="https://juanpabloquuu7-del.github.io/hotel-web/" target="_blank" rel="noopener" class="live-link"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg><span data-en="Live site">Ver sitio en vivo</span></a><a href="https://github.com/juanpabloquuu7-del/hotel-web" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
               </div>
               <h3 class="project-title" data-en="Hotel Chicamocha · 3D Tour Website">Hotel Chicamocha · Sitio con recorrido 3D</h3>
-              <p class="project-event" data-en="Solo project — from zero to production">Proyecto individual — de cero a producción</p>
+              <p class="project-event" data-en="Solo project · demo prototype, published on GitHub Pages">Proyecto individual · prototipo de demostración publicado en GitHub Pages</p>
+              <p class="project-note" data-en="Demo sketch: not a site sold to or built for a real client; it shows what I can build.">Boceto de demostración: no es un sitio vendido ni de un cliente real; muestra lo que puedo construir.</p>
               <p class="project-role"><strong data-en="My role:">Mi aporte:</strong> <span data-en="Solo project: design, development, 3D scene, SEO and PWA.">proyecto individual: diseño, desarrollo, escena 3D, SEO y PWA.</span></p>
               <p class="project-pitch" data-en="A hotel you explore in 3D and book via WhatsApp in one click.">Un hotel que se recorre en 3D y se reserva por WhatsApp en un clic.</p>
               <div class="project-highlights"><div class="highlight-chip"><span class="highlight-label" data-en="Interactive 3D building">Edificio en 3D</span><span class="highlight-text" data-en="Walkthrough and room finder">Recorrido y búsqueda de habitación</span></div><div class="highlight-chip"><span class="highlight-label">PWA</span><span class="highlight-text" data-en="Installable, with service worker and manifest">Instalable, con service worker y manifest</span></div><div class="highlight-chip"><span class="highlight-label" data-en="Direct booking">Reserva directa</span><span class="highlight-text" data-en="WhatsApp and phone, no middlemen">WhatsApp y llamada, sin intermediarios</span></div></div>
               <div class="project-stack"><span class="stack-badge">HTML5</span><span class="stack-badge">CSS3</span><span class="stack-badge">JavaScript</span><span class="stack-badge">three.js</span><span class="stack-badge">Service Worker</span></div>
             </article>
 
-            <article class="project-card" data-index="1">
+            <article class="project-card" data-index="1" id="proyecto-ia">
+              <figure class="project-media project-media--diagram">
+                <div class="media-bar" aria-hidden="true"><span class="media-dots"><i></i><i></i><i></i></span><span class="media-url" data-en="diagram · request flow">diagrama · flujo de una consulta</span></div>
+                <div class="media-body diagram" role="img" aria-label="Diagrama del flujo: la interfaz en Streamlit envía la consulta a una caché MD5; si no está en caché se llama a Gemini 2.0, y ante un error 429 responde un fallback algorítmico." data-aria-en="Flow diagram: the Streamlit interface sends the query to an MD5 cache; if it is not cached, Gemini 2.0 is called, and on a 429 error an algorithmic fallback answers.">
+                  <div class="dg-col">
+                    <span class="dg-head" data-en="interface">interfaz</span>
+                    <span class="dg-node">Streamlit</span>
+                  </div>
+                  <span class="dg-arrow" aria-hidden="true">→</span>
+                  <div class="dg-col">
+                    <span class="dg-head" data-en="cache">caché</span>
+                    <span class="dg-node dg-node--accent">hash MD5</span>
+                    <span class="dg-note" data-en="repeated query: no API call">consulta repetida: sin llamar a la API</span>
+                  </div>
+                  <span class="dg-arrow" aria-hidden="true">→</span>
+                  <div class="dg-col">
+                    <span class="dg-head" data-en="AI">IA</span>
+                    <span class="dg-node">Gemini 2.0</span>
+                    <span class="dg-note" data-en="error 429 ↓">error 429 ↓</span>
+                    <span class="dg-node dg-node--accent" data-en="Fallback">Fallback</span>
+                  </div>
+                </div>
+              </figure>
               <div class="project-header">
                 <div class="project-tags"><span class="tag tag-ai" data-en="AI">IA</span><span class="tag tag-hackathon">Hackathon</span><span class="tag tag-python">Python</span></div>
                 <div class="project-links"><a href="https://github.com/alejandro-xoxo/HachatonCampuslans2026.git" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
@@ -128,7 +183,17 @@
               <div class="project-stack"><span class="stack-badge">Python</span><span class="stack-badge">Streamlit</span><span class="stack-badge">Gemini 2.0</span><span class="stack-badge">Google GenAI SDK</span><span class="stack-badge">hashlib</span></div>
             </article>
 
-            <article class="project-card" data-index="2">
+            <article class="project-card" data-index="2" id="proyecto-erp">
+              <figure class="project-media project-media--diagram">
+                <div class="media-bar" aria-hidden="true"><span class="media-dots"><i></i><i></i><i></i></span><span class="media-url" data-en="diagram · layered architecture">diagrama · arquitectura por capas</span></div>
+                <div class="media-body diagram diagram--layers" role="img" aria-label="Diagrama de capas: menús de consola, controladores y services (mi aporte); DAO y modelos, y MySQL 8 (mi compañero)." data-aria-en="Layer diagram: console menus, controllers and services (my part); DAO and models, and MySQL 8 (my teammate).">
+                  <div class="dg-layer dg-layer--mine"><span data-en="Console menus">Menús de consola</span><span class="dg-owner" data-en="my part">mi aporte</span></div>
+                  <div class="dg-layer dg-layer--mine"><span data-en="Controllers">Controladores</span><span class="dg-owner" data-en="my part">mi aporte</span></div>
+                  <div class="dg-layer dg-layer--mine"><span data-en="Services · scholarships, finance">Services · becas, finanzas</span><span class="dg-owner" data-en="my part">mi aporte</span></div>
+                  <div class="dg-layer"><span data-en="DAO · models">DAO · modelos</span><span class="dg-owner" data-en="teammate">compañero</span></div>
+                  <div class="dg-layer"><span>MySQL 8</span><span class="dg-owner" data-en="teammate">compañero</span></div>
+                </div>
+              </figure>
               <div class="project-header">
                 <div class="project-tags"><span class="tag tag-python">Java 17</span><span class="tag tag-ai">MySQL</span><span class="tag tag-hackathon">ERP</span></div>
                 <div class="project-links"><a href="https://github.com/juanpabloquuu7-del/little-horizons-erp-v2" target="_blank" rel="noopener" class="icon-link" aria-label="Ver repositorio en GitHub" data-aria-en="View repository on GitHub" title="GitHub"><svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div>
@@ -141,7 +206,14 @@
               <div class="project-stack"><span class="stack-badge">Java 17</span><span class="stack-badge">MySQL 8</span><span class="stack-badge">Maven</span><span class="stack-badge">JDBC</span><span class="stack-badge">Arquitectura por capas</span></div>
             </article>
 
-            <article class="project-card" data-index="3">
+            <article class="project-card" data-index="3" id="proyecto-ecommerce">
+              <figure class="project-media">
+                <div class="media-bar" aria-hidden="true"><span class="media-dots"><i></i><i></i><i></i></span><span class="media-url">juanpabloquuu7-del.github.io/Proyecto_E-commerce…</span></div>
+                <picture class="media-body">
+                  <source srcset="img/ecommerce-spa.webp" type="image/webp" />
+                  <img src="img/ecommerce-spa.jpg" width="1280" height="620" loading="lazy" decoding="async" alt="Captura real de la portada de la tienda SPA: banner oscuro con el lema de la marca, botones para explorar la colección y ver ofertas, y dos tarjetas hacia el catálogo y las novedades." data-alt-en="Real screenshot of the SPA store homepage: dark banner with the brand tagline, buttons to explore the collection and see offers, and two cards linking to the catalog and new arrivals." />
+                </picture>
+              </figure>
               <div class="project-header">
                 <div class="project-tags">
                   <span class="tag tag-frontend">Frontend</span>
@@ -185,7 +257,30 @@
               </div>
             </article>
 
-            <article class="project-card" data-index="4">
+            <article class="project-card" data-index="4" id="proyecto-comunidad">
+              <figure class="project-media project-media--diagram">
+                <div class="media-bar" aria-hidden="true"><span class="media-dots"><i></i><i></i><i></i></span><span class="media-url" data-en="diagram · roles and data">diagrama · roles y datos</span></div>
+                <div class="media-body diagram" role="img" aria-label="Diagrama: dos roles, administrador y residente, acceden a los módulos de vecinos, inventario y préstamos, que guardan en archivos JSON y registran acciones en logs.txt." data-aria-en="Diagram: two roles, admin and resident, access the neighbors, inventory and loans modules, which save to JSON files and log actions to logs.txt.">
+                  <div class="dg-col">
+                    <span class="dg-head">roles</span>
+                    <span class="dg-node">Admin</span>
+                    <span class="dg-node" data-en="Resident">Residente</span>
+                  </div>
+                  <span class="dg-arrow" aria-hidden="true">→</span>
+                  <div class="dg-col">
+                    <span class="dg-head" data-en="modules">módulos</span>
+                    <span class="dg-node" data-en="Neighbors">Vecinos</span>
+                    <span class="dg-node" data-en="Inventory">Inventario</span>
+                    <span class="dg-node" data-en="Loans">Préstamos</span>
+                  </div>
+                  <span class="dg-arrow" aria-hidden="true">→</span>
+                  <div class="dg-col">
+                    <span class="dg-head" data-en="storage">datos</span>
+                    <span class="dg-node dg-node--accent">.json</span>
+                    <span class="dg-node dg-node--accent">logs.txt</span>
+                  </div>
+                </div>
+              </figure>
               <div class="project-header">
                 <div class="project-tags">
                   <span class="tag tag-python">Python</span>
@@ -231,8 +326,66 @@
         </div>
       </section>
 
+      <!-- SERVICIOS / CÓMO TRABAJO -->
+      <section class="section section-alt" id="servicios">
+        <div class="container">
+          <h2 class="section-title"><span data-en="Services &amp;">Servicios y</span> <span class="accent" data-en="how I work">cómo trabajo</span></h2>
+          <p class="section-sub" data-en="For businesses and people who need a website or a custom tool. Each service points to a project on this page where you can see that kind of work.">Para negocios y personas que necesitan una web o una herramienta a medida. Cada servicio apunta a un proyecto de esta página donde puedes ver ese tipo de trabajo.</p>
+
+          <div class="services-grid">
+            <article class="service-card">
+              <h3 class="service-title" data-en="Landing pages &amp; websites with WhatsApp booking">Landing pages y webs con reserva por WhatsApp</h3>
+              <p class="service-text" data-en="Mobile-first sites with a booking or order button that opens a WhatsApp chat directly, without middlemen.">Sitios pensados primero para el celular, con un botón de reserva o pedido que abre el chat de WhatsApp directamente, sin intermediarios.</p>
+              <a class="service-proof" href="#proyecto-hotel"><span data-en="See: Hotel Chicamocha (prototype)">Ver: Hotel Chicamocha (prototipo)</span><span aria-hidden="true"> ↑</span></a>
+            </article>
+            <article class="service-card">
+              <h3 class="service-title" data-en="SPA online stores">Tiendas SPA</h3>
+              <p class="service-text" data-en="Catalog, cart and page-to-page navigation without reloads, built with standard JavaScript and no heavy frameworks.">Catálogo, carrito y navegación entre páginas sin recargas, hechos con JavaScript estándar y sin frameworks pesados.</p>
+              <a class="service-proof" href="#proyecto-ecommerce"><span data-en="See: Fashion E-commerce SPA">Ver: E-commerce SPA de Moda</span><span aria-hidden="true"> ↑</span></a>
+            </article>
+            <article class="service-card">
+              <h3 class="service-title" data-en="Automation with Python &amp; AI">Automatización con Python e IA</h3>
+              <p class="service-text" data-en="Scripts and modules that connect AI (Gemini) to a task, with caching to avoid repeated calls and a backup plan when the API fails.">Scripts y módulos que conectan IA (Gemini) a una tarea, con caché para no repetir llamadas y un plan de respaldo cuando la API falla.</p>
+              <a class="service-proof" href="#proyecto-ia"><span data-en="See: AI Educational Analytics">Ver: Analítica Educativa con IA</span><span aria-hidden="true"> ↑</span></a>
+            </article>
+            <article class="service-card">
+              <h3 class="service-title" data-en="Management systems">Sistemas de gestión</h3>
+              <p class="service-text" data-en="Users by role, inventory, loans, billing and reports — in a MySQL database or in simple files when that's all you need.">Usuarios por rol, inventario, préstamos, facturación y reportes — en una base de datos MySQL o en archivos simples cuando no hace falta más.</p>
+              <a class="service-proof" href="#proyecto-erp"><span data-en="See: School ERP · Community Management">Ver: ERP Colegio · Gestión Comunitaria</span><span aria-hidden="true"> ↑</span></a>
+            </article>
+          </div>
+
+          <h3 class="process-title" data-en="How we would work together">Cómo trabajaríamos</h3>
+          <ol class="process">
+            <li class="process-step">
+              <span class="process-num" aria-hidden="true">01</span>
+              <h4 data-en="We talk and agree on the scope">Conversamos y definimos el alcance</h4>
+              <p data-en="You tell me what you need. Before starting, I send you in writing what it includes, what it doesn't, and an estimated timeline.">Me cuentas qué necesitas. Antes de empezar te envío por escrito qué incluye, qué no incluye y un plazo estimado.</p>
+            </li>
+            <li class="process-step">
+              <span class="process-num" aria-hidden="true">02</span>
+              <h4 data-en="I build with visible progress">Construyo con avances visibles</h4>
+              <p data-en="I work in a GitHub repository and share a test link so you can review progress and ask for changes along the way.">Trabajo en un repositorio de GitHub y te comparto un enlace de prueba para que revises el avance y pidas cambios sobre la marcha.</p>
+            </li>
+            <li class="process-step">
+              <span class="process-num" aria-hidden="true">03</span>
+              <h4 data-en="Launch and handover">Publicación y entrega</h4>
+              <p data-en="I publish it and hand over the code with short instructions, so the project is yours and doesn't depend on me.">Lo publico y te entrego el código con instrucciones breves, para que el proyecto sea tuyo y no dependa de mí.</p>
+            </li>
+          </ol>
+
+          <div class="services-cta">
+            <p class="services-cta-text"><strong data-en="Have a project like these in mind?">¿Tienes en mente un proyecto así?</strong> <span data-en="Write to me by email or LinkedIn with a short description and I'll reply with a scope proposal.">Escríbeme por correo o LinkedIn con una descripción breve y te respondo con una propuesta de alcance.</span></p>
+            <div class="services-cta-actions">
+              <a href="mailto:juanpabloquuu7@gmail.com?subject=Proyecto%20freelance" class="btn btn-primary"><span data-en="Email me">Escribir por correo</span><span class="btn-arrow" aria-hidden="true">→</span></a>
+              <a href="https://www.linkedin.com/in/juan-quintanilla-6058a23a4/" target="_blank" rel="noopener" class="btn btn-secondary" data-en="Message on LinkedIn">Mensaje por LinkedIn</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- STACK -->
-      <section class="section section-alt" id="stack">
+      <section class="section" id="stack">
         <div class="container">
           <h2 class="section-title"><span data-en="Tech">Stack</span> <span class="accent" data-en="Stack">Tecnológico</span></h2>
           <p class="section-sub" data-en="Tools I use to build real solutions — each one backed by a project.">Herramientas con las que construyo soluciones reales — cada una respaldada por un proyecto.</p>
@@ -278,7 +431,7 @@
       </section>
 
       <!-- SOBRE MÍ -->
-      <section class="section" id="sobre-mi">
+      <section class="section section-alt" id="sobre-mi">
         <div class="container">
           <h2 class="section-title"><span data-en="About">Sobre</span> <span class="accent" data-en="Me">Mí</span></h2>
 
@@ -309,7 +462,7 @@
       </section>
 
       <!-- CONTACTO -->
-      <section class="section section-alt" id="contacto">
+      <section class="section" id="contacto">
         <div class="container">
           <h2 class="section-title"><span class="accent" data-en="Contact">Contacto</span></h2>
           <p class="section-sub" data-en="Got a project in mind or an opportunity? Let's talk.">¿Tienes un proyecto en mente o una oportunidad? Hablemos.</p>
