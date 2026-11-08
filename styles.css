@@ -26,6 +26,16 @@
   --border-card: rgba(213, 239, 230, 0.1);
   --border-strong: rgba(213, 239, 230, 0.2);
 
+  /* Cristal (glassmorphism): base oscura translúcida + velo claro/verde.
+     La opacidad de la base mantiene AA del texto aunque detrás pase la zona
+     más clara del fondo 3D. */
+  --glass-base: rgba(8, 22, 17, 0.66);
+  --glass-base-hover: rgba(13, 36, 28, 0.72);
+  --glass-tint: linear-gradient(150deg, rgba(226, 244, 237, 0.075) 0%, rgba(34, 214, 163, 0.03) 45%, rgba(226, 244, 237, 0.015) 100%);
+  --glass-border: rgba(213, 239, 230, 0.14);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 14px 32px -20px rgba(0, 0, 0, 0.75);
+  --glass-blur: blur(12px) saturate(140%);
+
   /* Tipografía */
   --font-main: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-code: 'Fira Code', ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -506,7 +516,6 @@ main,
 }
 
 .code-block {
-  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--sp-5) var(--sp-6);
@@ -520,7 +529,7 @@ main,
   overflow: hidden;
   margin-top: calc(var(--sp-7) * -1);
   margin-left: calc(var(--sp-4) * -1);
-  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 24px 48px -24px rgba(0, 0, 0, 0.8);
   animation: fadeUp 0.7s var(--ease-out) 0.5s both;
 }
 
@@ -610,6 +619,27 @@ main,
   transform: translateZ(calc(var(--card-h) / -2)) rotateX(90deg);
 }
 
+/* Capa de desenfoque del cristal. Vive FUERA del contexto preserve-3d
+   (hermana plana del cubo): backdrop-filter dentro de un cubo 3D aplana el
+   giro o falla según el navegador. La cara frontal solo aporta el velo
+   translúcido; esta capa aporta el blur y se desvanece al girar. */
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  pointer-events: none;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  transition: opacity 0.35s ease 0.3s;
+}
+.project-card.is-flipped::before,
+html:not(.js) .project-card:hover::before,
+html:not(.js) .project-card:focus-within::before {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
 .card-face {
   position: absolute;
   inset: 0;
@@ -628,6 +658,10 @@ main,
   gap: var(--sp-5);
   padding: var(--pad);
   overflow: hidden;
+  background-color: var(--glass-base);
+  background-image: var(--glass-tint);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
   transition: border-color 0.3s ease;
 }
 
@@ -643,6 +677,14 @@ main,
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
   border-color: var(--border);
+  /* Cara de detalle: deja de ser cristal y se vuelve sólida mientras gira */
+  background-color: var(--glass-base);
+  transition: background-color 0.35s ease;
+}
+.project-card.is-flipped .card-back,
+html:not(.js) .project-card:hover .card-back,
+html:not(.js) .project-card:focus-within .card-back {
+  background-color: var(--bg-card);
 }
 .card-back:focus-visible { outline-offset: -3px; border-radius: var(--radius); }
 
@@ -745,9 +787,11 @@ html:not(.js) .card-close { display: none; }
   --card-h: 34rem;
   --pad: var(--sp-7);
 }
-.project-card--featured .card-face {
-  border-color: var(--border);
-  background: var(--bg-card-hover);
+.project-card--featured .card-face { border-color: var(--border); }
+.project-card--featured.is-flipped .card-back,
+html:not(.js) .project-card--featured:hover .card-back,
+html:not(.js) .project-card--featured:focus-within .card-back {
+  background-color: var(--bg-card-hover);
 }
 .project-card--featured .card-front .project-title {
   font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4rem);
@@ -1120,8 +1164,7 @@ html:not(.js) .card-close { display: none; }
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: var(--sp-5);
   transition: border-color var(--transition);
@@ -1204,7 +1247,6 @@ html:not(.js) .card-close { display: none; }
   gap: var(--sp-5);
   margin-top: var(--sp-7);
   padding: var(--sp-5) var(--sp-6);
-  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -1229,8 +1271,7 @@ html:not(.js) .card-close { display: none; }
 }
 
 .stack-category {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: var(--sp-6);
   transition: border-color 0.3s ease;
@@ -1288,8 +1329,7 @@ html:not(.js) .card-close { display: none; }
 .about-values { display: flex; flex-direction: column; gap: var(--sp-4); }
 
 .value-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  border: 1px solid var(--glass-border);
   border-left: 2px solid var(--accent);
   border-radius: var(--radius-sm) var(--radius) var(--radius) var(--radius-sm);
   padding: var(--sp-5);
@@ -1308,8 +1348,7 @@ html:not(.js) .card-close { display: none; }
 }
 
 .contact-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: var(--sp-5);
   display: flex;
@@ -1322,7 +1361,7 @@ html:not(.js) .card-close { display: none; }
 
 .contact-card:hover {
   border-color: var(--accent);
-  background: var(--bg-card-hover);
+  background-color: var(--glass-base-hover);
 }
 
 .contact-label {
@@ -1338,6 +1377,64 @@ html:not(.js) .card-close { display: none; }
   font-weight: 500;
   color: var(--text-primary);
   overflow-wrap: anywhere;
+}
+
+/* =============================================
+   CRISTAL (glassmorphism) — tarjetas planas
+   El blur va en la propia tarjeta: ninguna está dentro de un contexto 3D.
+============================================= */
+.code-block,
+.service-card,
+.services-cta,
+.stack-category,
+.value-card,
+.contact-card {
+  background-color: var(--glass-base);
+  background-image: var(--glass-tint);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.service-card,
+.services-cta,
+.stack-category,
+.value-card,
+.contact-card { box-shadow: var(--glass-shadow); }
+
+/* Sin backdrop-filter: velo bastante más opaco para no perder legibilidad */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-base: rgba(10, 28, 22, 0.9);
+    --glass-base-hover: rgba(15, 40, 32, 0.92);
+  }
+}
+
+/* Menos transparencia (p. ej. Windows con "Efectos de transparencia"
+   desactivados): el cristal se vuelve casi opaco. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-base: rgba(12, 33, 26, 0.92);
+    --glass-base-hover: rgba(16, 42, 33, 0.94);
+  }
+}
+
+/* Más contraste: superficies opacas, sin blur ni velo */
+@media (prefers-contrast: more) {
+  :root {
+    --glass-base: var(--bg-card);
+    --glass-base-hover: var(--bg-card-hover);
+    --glass-tint: none;
+    --glass-border: var(--border-strong);
+  }
+  .project-card::before,
+  .code-block,
+  .service-card,
+  .services-cta,
+  .stack-category,
+  .value-card,
+  .contact-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* =============================================
