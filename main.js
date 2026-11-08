@@ -120,7 +120,19 @@ if (finePointer && !reducedMotion) {
       setFaceAccess(flipped ? back : front, true);
       if (flipped && focusOnFront) back.focus({ preventScroll: true });
       setFaceAccess(flipped ? front : back, false);
-      card.classList.toggle('is-flipped', flipped);
+      // Chrome no detecta clics dentro de un cubo 3D girado: al terminar el giro se
+      // "asienta" la cara de detalle en 2D (visualmente idéntica) para que los enlaces sirvan.
+      clearTimeout(st.settleTimer);
+      if (flipped) {
+        card.classList.add('is-flipped');
+        st.settleTimer = setTimeout(() => card.classList.add('is-settled'), 800);
+      } else {
+        if (card.classList.contains('is-settled')) {
+          card.classList.remove('is-settled');
+          void card.offsetWidth; // fija el estado girado antes de volver
+        }
+        card.classList.remove('is-flipped');
+      }
       toggle.setAttribute('aria-expanded', String(flipped));
     };
 

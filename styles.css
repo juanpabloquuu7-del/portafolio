@@ -641,6 +641,11 @@ html:not(.js) .project-card:focus-within::before {
   transition: opacity 0.25s ease;
 }
 
+/* Detalle visible y quieto: se aplana la cara (mismo aspecto) para que los clics funcionen */
+.project-card.is-settled .card-cube { transform: none; transition: none; }
+.project-card.is-settled .card-back { transform: none; }
+.project-card.is-settled .card-front { visibility: hidden; }
+
 .card-face {
   position: absolute;
   inset: 0;
