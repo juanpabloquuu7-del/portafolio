@@ -87,24 +87,112 @@ if (finePointer && !reducedMotion) {
       el.style.transform = '';
     });
   });
-
-  // Tilt 3D sutil en las cartas de proyecto (solo cuando ya son visibles)
-  document.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-      if (!card.classList.contains('visible')) return;
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const strength = card.classList.contains('project-card--featured') ? 2 : 4;
-      const rotateX = ((y / rect.height) - 0.5) * -strength;
-      const rotateY = ((x / rect.width) - 0.5) * strength;
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
 }
+
+// --- Tarjetas de proyecto en cubo: portada (nombre) ↔ detalle ---
+// Estado visible = fijada (toque / teclado) || ratón encima || foco dentro del detalle.
+// Solo la cara visible queda expuesta a lectores de pantalla y al tabulador (inert).
+(function initProjectCubes() {
+  const cards = document.querySelectorAll('.project-card');
+
+  const setFaceAccess = (face, visible) => {
+    face.inert = !visible;
+    if (visible) face.removeAttribute('aria-hidden');
+    else face.setAttribute('aria-hidden', 'true');
+  };
+
+  const states = [...cards].map(card => {
+    const front = card.querySelector('.card-front');
+    const back = card.querySelector('.card-back');
+    const toggle = card.querySelector('.card-toggle');
+    const close = card.querySelector('.card-close');
+    if (!front || !back || !toggle) return null;
+
+    const st = { card, pinned: false, hovered: false, flipped: false };
+
+    st.render = () => {
+      const focusInBack = back.contains(document.activeElement);
+      const flipped = st.pinned || st.hovered || focusInBack;
+      if (flipped === st.flipped) return;
+      st.flipped = flipped;
+      // Si el foco está en la cara que se oculta, se pasa a la otra antes de volverla inert
+      const focusOnFront = front.contains(document.activeElement);
+      setFaceAccess(flipped ? back : front, true);
+      if (flipped && focusOnFront) back.focus({ preventScroll: true });
+      setFaceAccess(flipped ? front : back, false);
+      card.classList.toggle('is-flipped', flipped);
+      toggle.setAttribute('aria-expanded', String(flipped));
+    };
+
+    st.unflip = (refocus) => {
+      st.pinned = false;
+      st.hovered = false;
+      if (refocus) {
+        setFaceAccess(front, true);
+        toggle.focus({ preventScroll: true });
+      } else if (back.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+      st.render();
+    };
+
+    setFaceAccess(back, false);
+
+    // Ratón: girar al entrar, volver al salir (los toques no cuentan como hover)
+    card.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      st.hovered = true;
+      st.render();
+    });
+    card.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      st.hovered = false;
+      // Un clic con ratón dentro del detalle no debe dejar la tarjeta girada al salir
+      const active = document.activeElement;
+      if (!st.pinned && back.contains(active) && !active.matches(':focus-visible')) active.blur();
+      st.render();
+    });
+
+    // Toque / clic / Enter / Espacio sobre la portada
+    toggle.addEventListener('click', () => {
+      st.pinned = !st.flipped;
+      if (st.pinned) states.forEach(o => { if (o && o !== st && o.pinned) o.unflip(false); });
+      st.render();
+      if (st.flipped) back.focus({ preventScroll: true });
+    });
+
+    if (close) {
+      close.addEventListener('click', (e) => {
+        e.stopPropagation();
+        st.unflip(e.detail === 0 || !finePointer);
+      });
+    }
+
+    // Toque en una zona vacía del detalle (no en enlaces ni botones) → volver a la portada
+    back.addEventListener('click', (e) => {
+      if (e.target.closest('a, button')) return;
+      if (st.hovered) return; // con ratón el giro lo controla el hover
+      if (window.getSelection && String(window.getSelection())) return;
+      st.unflip(false);
+    });
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && st.flipped) {
+        e.stopPropagation();
+        st.unflip(true);
+      }
+    });
+
+    card.addEventListener('focusin', () => st.render());
+    card.addEventListener('focusout', (e) => {
+      if (card.contains(e.relatedTarget)) return;
+      if (e.relatedTarget) st.pinned = false; // el foco salió a otro elemento (Tab)
+      requestAnimationFrame(st.render);
+    });
+
+    return st;
+  });
+})();
 
 // Menú hamburguesa
 const hamburger = document.getElementById('hamburger');
