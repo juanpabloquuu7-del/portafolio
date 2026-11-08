@@ -139,6 +139,11 @@ if (finePointer && !reducedMotion) {
     st.unflip = (refocus) => {
       st.pinned = false;
       st.hovered = false;
+      // La portada está oculta mientras el detalle está asentado: se restaura antes de enfocarla
+      if (card.classList.contains('is-settled')) {
+        card.classList.remove('is-settled');
+        void card.offsetWidth;
+      }
       if (refocus) {
         setFaceAccess(front, true);
         toggle.focus({ preventScroll: true });
