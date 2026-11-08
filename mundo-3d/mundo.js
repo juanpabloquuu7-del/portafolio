@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildAE86 } from '../ae86.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,10 +76,10 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 
-const BG = 0x07110d;
+const BG = 0x2c5a60; // bruma azul-verdosa del atardecer
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
-scene.fog = new THREE.Fog(BG, 45, 150);
+scene.fog = new THREE.Fog(BG, 70, 330);
 
 const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 400);
 const resize = () => {
@@ -91,35 +92,55 @@ const resize = () => {
 addEventListener('resize', resize); resize();
 
 /* Luces */
-scene.add(new THREE.HemisphereLight(0xbfffe6, 0x0b2a20, 1.1));
-const sun = new THREE.DirectionalLight(0xe8fff6, 2.2);
-sun.position.set(30, 50, 20);
+scene.add(new THREE.HemisphereLight(0x9fd4d8, 0x46535a, 1.1));
+const sun = new THREE.DirectionalLight(0xffc592, 3.0);
+sun.position.set(-40, 34, -30);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 140 });
 sun.shadow.bias = -0.0004;
 scene.add(sun, sun.target);
 
-/* Suelo con cuadrícula */
+/* Suelo: plaza de asfalto con glorieta, andén y parque alrededor */
 const WORLD_R = 62;
+const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 1) / 2147483646; })();
 {
-  const c = document.createElement('canvas'); c.width = c.height = 512;
-  const g = c.getContext('2d');
-  g.fillStyle = '#0c2219'; g.fillRect(0, 0, 512, 512);
-  g.strokeStyle = 'rgba(34,214,163,0.20)'; g.lineWidth = 2;
-  g.strokeRect(1, 1, 510, 510);
-  g.strokeStyle = 'rgba(34,214,163,0.07)'; g.lineWidth = 1;
-  for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(i * 128, 0); g.lineTo(i * 128, 512); g.moveTo(0, i * 128); g.lineTo(512, i * 128); g.stroke(); }
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(40, 40);
-  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(WORLD_R + 18, 96), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0.0 }));
-  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
-  scene.add(ground);
-  // borde luminoso
-  const ring = new THREE.Mesh(new THREE.RingGeometry(WORLD_R, WORLD_R + 0.35, 128), new THREE.MeshBasicMaterial({ color: 0x22d6a3, transparent: true, opacity: 0.55 }));
-  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.02; scene.add(ring);
+  const noise = (w, base, spread) => {
+    const c = document.createElement('canvas'); c.width = c.height = w;
+    const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, w, w);
+    for (let i = 0; i < w * 14; i++) { const v = Math.floor(rand() * spread); g.fillStyle = `rgba(${v},${v},${v},0.09)`; g.fillRect(rand() * w, rand() * w, 1.6, 1.6); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  };
+  const asphalt = noise(256, '#3d4548', 255); asphalt.repeat.set(26, 26);
+  const grassT = noise(256, '#2f5a36', 255); grassT.repeat.set(30, 30);
+  const mk = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; scene.add(m); return m; };
+  mk(new THREE.CircleGeometry(WORLD_R + 120, 96), new THREE.MeshStandardMaterial({ map: grassT, roughness: 1 }), -0.02);
+  mk(new THREE.RingGeometry(WORLD_R, WORLD_R + 7, 128), new THREE.MeshStandardMaterial({ color: 0x8a8d86, roughness: 0.95 }), 0.02);
+  mk(new THREE.CircleGeometry(WORLD_R, 128), new THREE.MeshStandardMaterial({ map: asphalt, roughness: 0.92 }), 0.04);
+  const curb = new THREE.Mesh(new THREE.TorusGeometry(WORLD_R + 0.2, 0.28, 8, 160), new THREE.MeshStandardMaterial({ color: 0xc9c9c0, roughness: 0.8 }));
+  curb.rotation.x = Math.PI / 2; curb.position.y = 0.1; scene.add(curb);
+  const ring = (r0, r1, color, op, dash) => {
+    const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    if (!dash) { mk(new THREE.RingGeometry(r0, r1, 160), m, 0.06); return; }
+    for (let i = 0; i < dash; i += 2) mk(new THREE.RingGeometry(r0, r1, 4, 1, (i / dash) * Math.PI * 2, (Math.PI * 2) / dash), m, 0.06);
+  };
+  ring(WORLD_R - 3.2, WORLD_R - 2.95, 0xe9b93a, 0.9, 0);
+  ring(WORLD_R - 3.9, WORLD_R - 3.7, 0xf2f2ee, 0.7, 120);
+  const zebra = new THREE.MeshBasicMaterial({ color: 0xf2f2ee, transparent: true, opacity: 0.75, depthWrite: false });
+  for (let i = -5; i <= 5; i++) { const bar = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 4.2), zebra); bar.rotation.x = -Math.PI / 2; bar.position.set(i * 1.5, 0.06, 13); scene.add(bar); }
 }
+
+/* Cielo: cúpula con degradado de atardecer que sigue a la cámara */
+const sky = (() => {
+  const c = document.createElement('canvas'); c.width = 8; c.height = 512;
+  const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0.00, '#050d18'); gr.addColorStop(0.30, '#0c2535'); gr.addColorStop(0.48, '#1d4b5a');
+  gr.addColorStop(0.54, '#3d7076'); gr.addColorStop(0.58, '#e6a768'); gr.addColorStop(0.60, '#2c5a60'); gr.addColorStop(1.00, '#2c5a60');
+  g.fillStyle = gr; g.fillRect(0, 0, 8, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 24), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, depthWrite: false }));
+  m.renderOrder = -1; scene.add(m); return m;
+})();
 
 /* Estrellas */
 {
@@ -130,6 +151,78 @@ const WORLD_R = 62;
   }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xbfffe6, size: 0.9, sizeAttenuation: false, transparent: true, opacity: 0.7, fog: false })));
+}
+
+/* ---------- Bucaramanga: montañas, ciudad, catedral y parques ---------- */
+{
+  const flat = (c, extra) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, flatShading: true, ...(extra || {}) });
+  for (let i = 0; i < 34; i++) {
+    const a = (i / 34) * Math.PI * 2 + rand() * 0.1, r = 330 + rand() * 80, h = 55 + rand() * 90, rad = 60 + rand() * 60;
+    const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 7 + (i % 3)), flat(i % 2 ? 0x1c4a45 : 0x22544c));
+    m.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r); m.rotation.y = rand() * 6; scene.add(m);
+  }
+  // Cañón del Chicamocha: paredes rojizas escalonadas hacia un lado
+  const canyonA = Math.PI * 0.78;
+  for (let i = 0; i < 14; i++) {
+    const a = canyonA + (i - 7) * 0.075, r = 215 + (i % 3) * 14, h = 38 + rand() * 40;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(34, h, 22), flat(i % 2 ? 0x7a5039 : 0x8c5d3f));
+    m.position.set(Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r); m.lookAt(0, h / 2, 0); scene.add(m);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(36, 5, 24), flat(0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
+  }
+  // Edificios con ventanas encendidas
+  const winTex = (() => {
+    const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d');
+    g.fillStyle = '#1a2023'; g.fillRect(0, 0, 64, 128);
+    for (let y = 6; y < 124; y += 12) for (let x = 6; x < 60; x += 14) { g.fillStyle = rand() > 0.55 ? '#ffd58a' : '#2c3a40'; g.fillRect(x, y, 8, 7); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  })();
+  const tones = [0xb9b2a4, 0xa7a79f, 0xc7b79a, 0x9aa5a6, 0xb3a28a, 0x8f9a94];
+  for (let i = 0; i < 70; i++) {
+    const a = (i / 70) * Math.PI * 2 + (rand() - 0.5) * 0.06, r = 118 + rand() * 60;
+    let da = Math.abs(a - canyonA) % (Math.PI * 2); if (da > Math.PI) da = Math.PI * 2 - da;
+    if (da < 0.5) continue; // hueco para el cañón
+    const w = 10 + rand() * 12, d = 10 + rand() * 10, h = 14 + rand() * 52;
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const uv = geo.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * Math.max(1, Math.round(w / 6)), uv.getY(k) * Math.max(1, Math.round(h / 9)));
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: tones[i % tones.length], roughness: 0.9, map: winTex, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0.55 }));
+    m.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r); m.rotation.y = -a + (rand() - 0.5) * 0.3; m.castShadow = true; scene.add(m);
+  }
+  // Catedral de la Sagrada Familia (simplificada): nave crema, dos torres y cúpula verde
+  {
+    const g = new THREE.Group(); const cream = flat(0xe6d9b8), copper = flat(0x3f9c86);
+    const nave = new THREE.Mesh(new THREE.BoxGeometry(16, 15, 26), cream); nave.position.y = 7.5; g.add(nave);
+    [-6, 6].forEach((x) => {
+      const t = new THREE.Mesh(new THREE.BoxGeometry(4, 26, 4), cream); t.position.set(x, 13, 11); g.add(t);
+      const c = new THREE.Mesh(new THREE.ConeGeometry(3.1, 7, 4), copper); c.position.set(x, 29.5, 11); c.rotation.y = Math.PI / 4; g.add(c);
+    });
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(7, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), copper); dome.position.set(0, 15, -2); g.add(dome);
+    const lant = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 4, 12), cream); lant.position.set(0, 22, -2); g.add(lant);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    const ang = Math.PI * 1.25; g.position.set(Math.cos(ang) * 98, 0, Math.sin(ang) * 98); g.lookAt(0, 0, 0); scene.add(g);
+  }
+  // Árboles (ceibas y palmas) en el parque que rodea la plaza
+  const N = 120;
+  const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 5, 6), flat(0x5a3d29), N);
+  const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.4, 0), flat(0x2f7a45), N);
+  const palms = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 4.5, 7), flat(0x4d9a52), N);
+  const dm = new THREE.Object3D(); let np = 0, nc = 0;
+  for (let i = 0; i < N; i++) {
+    const a = rand() * Math.PI * 2, r = WORLD_R + 9 + rand() * 38, sc = 0.8 + rand() * 0.9, palm = rand() > 0.6;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    dm.position.set(x, 2.5 * sc, z); dm.scale.set(sc, sc * (palm ? 1.5 : 1), sc); dm.rotation.set(0, rand() * 6, 0); dm.updateMatrix(); trunks.setMatrixAt(i, dm.matrix);
+    dm.position.set(x, (palm ? 6.6 : 6.4) * sc, z); dm.scale.setScalar(sc); dm.updateMatrix();
+    if (palm) palms.setMatrixAt(np++, dm.matrix); else crowns.setMatrixAt(nc++, dm.matrix);
+  }
+  palms.count = np; crowns.count = nc;
+  [trunks, crowns, palms].forEach((m) => { m.castShadow = true; scene.add(m); });
+  // Cartel de bienvenida frente al inicio
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#0b1c17'; g.fillRect(0, 0, 1024, 256); g.strokeStyle = '#22d6a3'; g.lineWidth = 8; g.strokeRect(6, 6, 1012, 244);
+  g.fillStyle = '#e2f4ed'; g.font = '700 96px system-ui, Segoe UI, sans-serif'; g.textAlign = 'center'; g.fillText('BUCARAMANGA', 512, 128);
+  g.fillStyle = '#7dffce'; g.font = '600 46px system-ui, Segoe UI, sans-serif'; g.fillText('Ciudad Bonita · Santander, Colombia', 512, 200);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8;
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(12, 3), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false })); board.position.set(0, 5.4, -19); scene.add(board);
+  [-5.4, 5.4].forEach((x) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 6.4, 8), flat(0x2a3a35)); p.position.set(x, 3.2, -19.15); p.castShadow = true; scene.add(p); });
 }
 
 /* ---------- Colisiones (círculos) ---------- */
@@ -238,7 +331,8 @@ for (let i = 0; i < 14; i++) {
 }
 
 /* ---------- Carro: Toyota AE86 ---------- */
-const ae86 = buildAE86(THREE);
+const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const ae86 = buildAE86(THREE, { envMap });
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); car.add(beam, beam.target);
@@ -429,7 +523,8 @@ function frame() {
   camera.position.copy(camPos);
   camera.lookAt(S.x + fxx * 4.5, 1.2, S.z + fzz * 4.5);
 
-  sun.position.set(S.x + 30, 50, S.z + 20); sun.target.position.set(S.x, 0, S.z);
+  sun.position.set(S.x - 40, 34, S.z - 30); sun.target.position.set(S.x, 0, S.z);
+  sky.position.copy(camera.position);
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
