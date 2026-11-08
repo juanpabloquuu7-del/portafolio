@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { buildAE86 } from '../ae86.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -236,31 +237,11 @@ for (let i = 0; i < 14; i++) {
   addProp('crate', x, z);
 }
 
-/* ---------- Carro ---------- */
-const car = new THREE.Group();
-const bodyMat = new THREE.MeshStandardMaterial({ color: 0x22d6a3, roughness: 0.3, metalness: 0.45 });
-const darkMat = new THREE.MeshStandardMaterial({ color: 0x0a1511, roughness: 0.4, metalness: 0.3 });
-const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.6, 3.4), bodyMat); body.position.y = 0.75; body.castShadow = true;
-const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.55, 1.6), darkMat); cabin.position.set(0, 1.28, -0.2); cabin.castShadow = true;
-const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.5), darkMat); spoiler.position.set(0, 1.35, -1.6);
-const hood = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 0.9), bodyMat); hood.position.set(0, 1.08, 1.05);
-car.add(body, cabin, spoiler, hood);
-const lightMat = new THREE.MeshBasicMaterial({ color: 0xfff6d0 });
-const tailMat = new THREE.MeshBasicMaterial({ color: 0xff4d4d });
-[-0.6, 0.6].forEach((x) => {
-  const hl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.08), lightMat); hl.position.set(x, 0.8, 1.72); car.add(hl);
-  const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.08), tailMat); tl.position.set(x, 0.85, -1.72); car.add(tl);
-});
+/* ---------- Carro: Toyota AE86 ---------- */
+const ae86 = buildAE86(THREE);
+const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
-beam.position.set(0, 1, 1.5); beam.target.position.set(0, 0, 10); car.add(beam, beam.target);
-const wheels = [];
-const wheelGeo = new THREE.CylinderGeometry(0.46, 0.46, 0.38, 20); wheelGeo.rotateZ(Math.PI / 2);
-[[-1.05, 1.1], [1.05, 1.1], [-1.05, -1.1], [1.05, -1.1]].forEach(([x, z], i) => {
-  const piv = new THREE.Group(); piv.position.set(x, 0.46, z);
-  const w = new THREE.Mesh(wheelGeo, darkMat); w.castShadow = true; piv.add(w);
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.4, 10).rotateZ(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x7dffce, metalness: 0.7, roughness: 0.3 })); w.add(hub);
-  car.add(piv); wheels.push({ piv, w, front: i < 2 });
-});
+beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); car.add(beam, beam.target);
 scene.add(car);
 
 /* Estado del carro */
@@ -371,7 +352,7 @@ function step(dt) {
   }
 
   // colisiones carro ↔ estáticos y props
-  const CR = 1.35;
+  const CR = 1.55;
   statics.forEach((s) => {
     const dx = S.x - s.x, dz = S.z - s.z, dist = Math.hypot(dx, dz), min = CR + s.r;
     if (dist < min && dist > 0.0001) {
@@ -416,8 +397,8 @@ function step(dt) {
   car.position.set(S.x, 0, S.z);
   S.rollV += (-vl * 0.012 - S.rollV) * Math.min(1, dt * 6);
   car.rotation.set(0, S.h, 0);
-  body.rotation.z = S.rollV; cabin.rotation.z = S.rollV;
-  const spin = (vf * dt) / 0.46;
+  shell.rotation.z = S.rollV;
+  const spin = (vf * dt) / 0.31;
   wheels.forEach((w) => { w.w.rotation.x += spin; if (w.front) w.piv.rotation.y = S.steer * 0.5; });
   return { vf, sp, thr };
 }

@@ -38,6 +38,7 @@
   --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
 
   /* Tipografía */
+  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
   --font-main: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-code: 'Fira Code', ui-monospace, SFMono-Regular, Consolas, monospace;
   --fs-xs: 0.75rem;
@@ -123,59 +124,6 @@ section:focus-visible { outline: none; }
 
 ::selection { background: var(--accent); color: var(--on-accent); }
 
-/* =============================================
-   CURSOR PERSONALIZADO (solo puntero fino, sin reduced-motion)
-============================================= */
-html.has-custom-cursor,
-html.has-custom-cursor body,
-html.has-custom-cursor a,
-html.has-custom-cursor button,
-html.has-custom-cursor .project-card,
-html.has-custom-cursor .contact-card {
-  cursor: none;
-}
-
-.cursor-dot,
-.cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 9999;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  will-change: transform;
-  display: none;
-}
-
-html.has-custom-cursor .cursor-dot,
-html.has-custom-cursor .cursor-ring { display: block; }
-
-.cursor-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--accent-light);
-  transition: opacity 0.2s ease;
-}
-
-.cursor-ring {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--accent);
-  background: rgba(31, 122, 99, 0.06);
-  transition: width 0.25s ease, height 0.25s ease, background 0.25s ease, border-color 0.25s ease, opacity 0.2s ease;
-}
-
-.cursor-ring.active {
-  width: 54px;
-  height: 54px;
-  background: rgba(213, 239, 230, 0.08);
-  border-color: var(--text-primary);
-}
-
-.cursor-dot.hidden,
-.cursor-ring.hidden { opacity: 0; }
-
 /* Barra de progreso de scroll (transform: sin reflow) */
 .scroll-progress {
   position: fixed;
@@ -187,26 +135,6 @@ html.has-custom-cursor .cursor-ring { display: block; }
   z-index: 10000;
   transform: scaleX(0);
   transform-origin: 0 50%;
-}
-
-/* Ripple de clic */
-.click-ripple {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid var(--accent-light);
-  background: rgba(34, 214, 163, 0.15);
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%) scale(0);
-  animation: rippleOut 0.6s ease-out forwards;
-}
-
-@keyframes rippleOut {
-  to { transform: translate(-50%, -50%) scale(9); opacity: 0; }
 }
 
 /* =============================================
@@ -707,19 +635,6 @@ html:not(.js) .project-card:focus-within .card-back {
   background-color: var(--bg-card);
 }
 .card-back:focus-visible { outline-offset: -3px; border-radius: var(--radius); }
-
-/* Brillo especular que sigue al puntero (ambas caras) */
-.card-face::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06) 40%, transparent 65%);
-  transition: opacity 0.35s ease;
-}
-.project-card.is-tilting .card-face::after { opacity: 1; }
 
 /* Línea de color del proyecto en ambas caras */
 .card-face::before {
@@ -1458,7 +1373,6 @@ html:not(.js) .project-card--featured:focus-within .card-back {
     --glass-tint: none;
     --glass-border: var(--border-strong);
   }
-  .card-face::after { display: none; }
   .card-front { background-image: none; }
   .project-card::before,
   .code-block,
@@ -1504,16 +1418,6 @@ html:not(.js) .project-card--featured:focus-within .card-back {
   opacity: 1;
   transform: none;
   transition: opacity 0.6s ease, transform 0.6s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.2s ease;
-}
-
-/* Inclinación 3D siguiendo al puntero: se aplica a toda la tarjeta, así el
-   desenfoque del cristal se inclina junto con las caras. */
-.js .project-card.visible {
-  transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(var(--lift, 0px));
-  transition: opacity 0.6s ease, transform 0.6s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.2s ease;
-}
-.js .project-card.visible.is-tilting {
-  transition: opacity 0.6s ease, transform 0.12s linear;
 }
 
 /* =============================================
@@ -1624,7 +1528,7 @@ html:not(.js) .project-card--featured:focus-within .card-back {
   .project-card.is-flipped .card-front,
   html:not(.js) .project-card:hover .card-front,
   html:not(.js) .project-card:focus-within .card-front { visibility: hidden; }
-  .cursor-dot, .cursor-ring, .click-ripple, #bg3d { display: none !important; }
+  #bg3d { display: none !important; }
 }
 
 /* =============================================
@@ -1642,3 +1546,17 @@ html:not(.js) .project-card--featured:focus-within .card-back {
 .world-teaser-view:active { cursor: grabbing; }
 #car-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 @media (max-width: 900px) { .world-teaser-grid { grid-template-columns: 1fr; gap: var(--sp-5); } }
+
+/* =============================================
+   TIPOGRAFÍA DE TÍTULOS
+============================================= */
+h1, h2, h3,
+.nav-logo,
+.hero-name,
+.section-title,
+.project-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+.hero-name { font-weight: 800; letter-spacing: -0.035em; }
+.section-title, .project-title { font-weight: 700; letter-spacing: -0.03em; }

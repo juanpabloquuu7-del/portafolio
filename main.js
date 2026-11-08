@@ -63,32 +63,6 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 onScrollFrame();
 
-// Ripple de clic (solo con puntero fino y sin reduced-motion)
-if (finePointer && !reducedMotion) {
-  document.addEventListener('click', (e) => {
-    if (e.detail === 0) return; // clic por teclado
-    const ripple = document.createElement('div');
-    ripple.className = 'click-ripple';
-    ripple.style.left = `${e.clientX}px`;
-    ripple.style.top = `${e.clientY}px`;
-    document.body.appendChild(ripple);
-    ripple.addEventListener('animationend', () => ripple.remove());
-  });
-
-  // Botones magnéticos — se acercan levemente al cursor
-  document.querySelectorAll('.btn').forEach(el => {
-    el.addEventListener('mousemove', (e) => {
-      const rect = el.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      el.style.transform = `translate(${x * 0.12}px, ${y * 0.12}px)`;
-    });
-    el.addEventListener('mouseleave', () => {
-      el.style.transform = '';
-    });
-  });
-}
-
 // --- Tarjetas de proyecto en cubo: portada (nombre) ↔ detalle ---
 // Estado visible = fijada (toque / teclado) || ratón encima || foco dentro del detalle.
 // Solo la cara visible queda expuesta a lectores de pantalla y al tabulador (inert).
@@ -207,33 +181,6 @@ if (finePointer && !reducedMotion) {
       requestAnimationFrame(st.render);
     });
 
-    // Inclinación 3D + brillo que sigue al puntero (solo ratón, sin reduce-motion)
-    if (finePointer && !reducedMotion) {
-      let raf = 0, px = 0, py = 0;
-      const MAX = 5; // grados
-      const apply = () => {
-        raf = 0;
-        const r = card.getBoundingClientRect();
-        const x = (px - r.left) / r.width, y = (py - r.top) / r.height;
-        card.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
-        card.style.setProperty('--my', (y * 100).toFixed(1) + '%');
-        card.style.setProperty('--ry', ((x - 0.5) * 2 * MAX).toFixed(2) + 'deg');
-        card.style.setProperty('--rx', ((0.5 - y) * 2 * MAX).toFixed(2) + 'deg');
-        card.style.setProperty('--lift', '14px');
-      };
-      card.addEventListener('pointermove', (e) => {
-        if (e.pointerType !== 'mouse') return;
-        px = e.clientX; py = e.clientY;
-        card.classList.add('is-tilting');
-        if (!raf) raf = requestAnimationFrame(apply);
-      });
-      card.addEventListener('pointerleave', () => {
-        if (raf) { cancelAnimationFrame(raf); raf = 0; }
-        card.classList.remove('is-tilting');
-        ['--rx', '--ry', '--lift'].forEach(v => card.style.removeProperty(v));
-      });
-    }
-
     return st;
   });
 })();
@@ -282,51 +229,6 @@ if (reducedMotion || !('IntersectionObserver' in window)) {
   revealTargets.forEach(card => observer.observe(card));
 }
 
-// --- Cursor personalizado (solo puntero fino y sin reduced-motion) ---
-const cursorDot = document.getElementById('cursorDot');
-const cursorRing = document.getElementById('cursorRing');
-
-if (cursorDot && cursorRing && finePointer && !reducedMotion) {
-  document.documentElement.classList.add('has-custom-cursor');
-
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
-  let ringX = mouseX;
-  let ringY = mouseY;
-  let ringScale = 1;
-
-  window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
-  }, { passive: true });
-
-  function animateRing() {
-    ringX += (mouseX - ringX) * 0.18;
-    ringY += (mouseY - ringY) * 0.18;
-    cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%) scale(${ringScale})`;
-    requestAnimationFrame(animateRing);
-  }
-  animateRing();
-
-  document.addEventListener('mouseleave', () => {
-    cursorDot.classList.add('hidden');
-    cursorRing.classList.add('hidden');
-  });
-  document.addEventListener('mouseenter', () => {
-    cursorDot.classList.remove('hidden');
-    cursorRing.classList.remove('hidden');
-  });
-
-  const interactiveSelector = 'a, button, .project-card, .contact-card';
-  document.querySelectorAll(interactiveSelector).forEach(el => {
-    el.addEventListener('mouseenter', () => cursorRing.classList.add('active'));
-    el.addEventListener('mouseleave', () => cursorRing.classList.remove('active'));
-  });
-
-  document.addEventListener('mousedown', () => { ringScale = 0.85; });
-  document.addEventListener('mouseup', () => { ringScale = 1; });
-}
 
 // Scroll suave para anclas internas (respeta reduced-motion y mueve el foco)
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
