@@ -366,6 +366,20 @@
       </section>
 
       <!-- SERVICIOS / CÓMO TRABAJO -->
+      <!-- Teaser 3D del mundo interactivo -->
+      <section class="section world-teaser" id="mundo" aria-labelledby="mundo-titulo">
+        <div class="container world-teaser-grid">
+          <div class="world-teaser-text">
+            <h2 class="section-title" id="mundo-titulo"><span data-en="Drive through my">Recorre mis proyectos</span> <span class="accent" data-en="projects in 3D">en 3D</span></h2>
+            <p class="section-sub" data-en="An interactive world where you drive a car and visit each project, my about section and contact.">Un mundo interactivo donde manejas un carro y visitas cada proyecto, mi sección Sobre mí y el contacto.</p>
+            <a href="mundo-3d/" class="btn btn-primary"><span data-en="Enter the 3D world">Entrar al mundo 3D</span><span class="btn-arrow" aria-hidden="true">→</span></a>
+          </div>
+          <div class="world-teaser-view glass-panel" id="car-view" role="img" aria-label="Modelo 3D del carro del mundo interactivo, girando. Arrástralo para rotarlo." data-aria-en="3D model of the interactive world's car, rotating. Drag to rotate it.">
+            <canvas id="car-canvas"></canvas>
+          </div>
+        </div>
+      </section>
+
       <section class="section section-alt" id="servicios">
         <div class="container">
           <h2 class="section-title"><span data-en="Services &amp;">Servicios y</span> <span class="accent" data-en="how I work">cómo trabajo</span></h2>
@@ -537,6 +551,7 @@
       { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
     <script type="module" src="three-scene.js"></script>
+    <script type="module" src="car-teaser.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

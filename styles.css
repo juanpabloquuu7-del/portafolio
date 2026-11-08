@@ -1626,3 +1626,19 @@ html:not(.js) .project-card--featured:focus-within .card-back {
   html:not(.js) .project-card:focus-within .card-front { visibility: hidden; }
   .cursor-dot, .cursor-ring, .click-ripple, #bg3d { display: none !important; }
 }
+
+/* =============================================
+   TEASER DEL MUNDO 3D
+============================================= */
+.world-teaser-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-7); align-items: center; }
+.world-teaser-text .btn { margin-top: var(--sp-5); }
+.world-teaser-view {
+  position: relative; aspect-ratio: 16 / 10; border-radius: var(--radius);
+  background-color: var(--glass-base); background-image: var(--glass-tint);
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  overflow: hidden; cursor: grab; touch-action: pan-y;
+}
+.world-teaser-view:active { cursor: grabbing; }
+#car-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@media (max-width: 900px) { .world-teaser-grid { grid-template-columns: 1fr; gap: var(--sp-5); } }
