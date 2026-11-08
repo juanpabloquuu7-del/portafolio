@@ -13,9 +13,10 @@ if (view && canvas) {
   const start = () => {
     if (started) return; started = true;
     let renderer;
-    try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); }
+    try { renderer = new THREE.WebGLRenderer({ canvas, antialias: !(matchMedia('(hover: none) and (pointer: coarse)').matches), alpha: true }); }
     catch { view.hidden = true; return; }
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const lowEnd = matchMedia('(hover: none) and (pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
+    renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.25 : 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
