@@ -35,6 +35,7 @@
   --glass-border: rgba(213, 239, 230, 0.26);
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 22px rgba(255, 255, 255, 0.025), 0 14px 32px -20px rgba(0, 0, 0, 0.75);
   --glass-blur: blur(9px) saturate(170%) brightness(1.08);
+  --glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
 
   /* Tipografía */
   --font-main: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -659,9 +660,21 @@ html:not(.js) .project-card:focus-within::before {
   padding: var(--pad);
   overflow: hidden;
   background-color: var(--glass-base);
-  background-image: var(--glass-tint);
+  background-image:
+    radial-gradient(120% 85% at 100% 100%, color-mix(in srgb, var(--card-accent) 24%, transparent) 0%, transparent 62%),
+    radial-gradient(70% 50% at 0% 0%, rgba(255, 255, 255, 0.10) 0%, transparent 70%),
+    var(--glass-grain),
+    var(--glass-tint);
+  background-blend-mode: normal, normal, soft-light, normal;
   border-color: var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  /* borde de luz: arriba/izquierda brillante, abajo/derecha apagado, como vidrio biselado */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 1px 0 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.30),
+    inset 0 0 36px rgba(255, 255, 255, 0.035),
+    0 28px 46px -28px rgba(0, 0, 0, 0.85),
+    0 0 46px -22px color-mix(in srgb, var(--card-accent) 55%, transparent);
   transition: border-color 0.3s ease;
 }
 
@@ -687,6 +700,19 @@ html:not(.js) .project-card:focus-within .card-back {
   background-color: var(--bg-card);
 }
 .card-back:focus-visible { outline-offset: -3px; border-radius: var(--radius); }
+
+/* Brillo especular que sigue al puntero (ambas caras) */
+.card-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 40%, transparent 65%);
+  transition: opacity 0.35s ease;
+}
+.project-card.is-tilting .card-face::after { opacity: 1; }
 
 /* Línea de color del proyecto en ambas caras */
 .card-face::before {
@@ -1425,6 +1451,8 @@ html:not(.js) .project-card--featured:focus-within .card-back {
     --glass-tint: none;
     --glass-border: var(--border-strong);
   }
+  .card-face::after { display: none; }
+  .card-front { background-image: none; }
   .project-card::before,
   .code-block,
   .service-card,
@@ -1469,6 +1497,16 @@ html:not(.js) .project-card--featured:focus-within .card-back {
   opacity: 1;
   transform: none;
   transition: opacity 0.6s ease, transform 0.6s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.2s ease;
+}
+
+/* Inclinación 3D siguiendo al puntero: se aplica a toda la tarjeta, así el
+   desenfoque del cristal se inclina junto con las caras. */
+.js .project-card.visible {
+  transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(var(--lift, 0px));
+  transition: opacity 0.6s ease, transform 0.6s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.2s ease;
+}
+.js .project-card.visible.is-tilting {
+  transition: opacity 0.6s ease, transform 0.12s linear;
 }
 
 /* =============================================

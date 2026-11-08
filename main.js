@@ -190,6 +190,33 @@ if (finePointer && !reducedMotion) {
       requestAnimationFrame(st.render);
     });
 
+    // Inclinación 3D + brillo que sigue al puntero (solo ratón, sin reduce-motion)
+    if (finePointer && !reducedMotion) {
+      let raf = 0, px = 0, py = 0;
+      const MAX = 5; // grados
+      const apply = () => {
+        raf = 0;
+        const r = card.getBoundingClientRect();
+        const x = (px - r.left) / r.width, y = (py - r.top) / r.height;
+        card.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+        card.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+        card.style.setProperty('--ry', ((x - 0.5) * 2 * MAX).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', ((0.5 - y) * 2 * MAX).toFixed(2) + 'deg');
+        card.style.setProperty('--lift', '14px');
+      };
+      card.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        px = e.clientX; py = e.clientY;
+        card.classList.add('is-tilting');
+        if (!raf) raf = requestAnimationFrame(apply);
+      });
+      card.addEventListener('pointerleave', () => {
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        card.classList.remove('is-tilting');
+        ['--rx', '--ry', '--lift'].forEach(v => card.style.removeProperty(v));
+      });
+    }
+
     return st;
   });
 })();
