@@ -220,3 +220,39 @@ export function buildAE86(THREE, opts = {}) {
 
   return { group, shell, wheels };
 }
+
+
+// Si existe un modelo real (.glb) lo usa en lugar del carro procedural.
+// Se normaliza (tamaño, centro, orientación). Con ?flip se invierte el frente.
+export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) {
+  try {
+    const head = await fetch(url, { method: 'HEAD' });
+    if (!head.ok) return false;
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+    const gltf = await new GLTFLoader().loadAsync(url);
+    const model = gltf.scene;
+    let box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3());
+    const holder = new THREE.Group(); holder.add(model);
+    if (size.x > size.z) holder.rotation.y = Math.PI / 2;                 // largo sobre el eje z
+    if (flip) holder.rotation.y += Math.PI;
+    holder.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(holder); size = box.getSize(new THREE.Vector3());
+    const k = 4.2 / Math.max(size.z, 0.001);
+    holder.scale.setScalar(k); holder.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(holder); const c = box.getCenter(new THREE.Vector3());
+    holder.position.set(-c.x, -box.min.y, -c.z);
+    model.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = true; o.receiveShadow = true;
+      const ms = Array.isArray(o.material) ? o.material : [o.material];
+      ms.forEach((m) => { if (m && envMap && 'envMapIntensity' in m) { m.envMap = envMap; m.envMapIntensity = 1.0; } });
+    });
+    // oculta el carro procedural y usa el modelo real como carrocería
+    built.shell.clear();
+    built.wheels.forEach((w) => { w.piv.visible = false; });
+    built.group.children.forEach((ch) => { if (ch !== built.shell) ch.visible = false; });
+    built.shell.add(holder);
+    built.realModel = true;
+    return true;
+  } catch (e) { console.warn('No se pudo cargar el modelo real', e); return false; }
+}

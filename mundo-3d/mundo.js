@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildAE86 } from '../ae86.js';
+import { buildAE86, tryLoadAE86Model } from '../ae86.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -71,7 +71,8 @@ try {
   $('fallback').classList.add('show');
   throw e;
 }
-const PR_MAX = LOW ? Math.min(devicePixelRatio, 1.25) : Math.min(devicePixelRatio, 2);
+// Escritorio: supermuestreo (mínimo 1.5x) para que la imagen salga nítida; celular: ligero
+const PR_MAX = LOW ? Math.min(devicePixelRatio, 1.25) : Math.min(Math.max(devicePixelRatio, 1.5), 2.25);
 let pr = PR_MAX;
 renderer.setPixelRatio(pr);
 let composerRef = null;
@@ -86,7 +87,7 @@ renderer.toneMappingExposure = 1.05;
 const BG = 0x2c5a60; // bruma azul-verdosa del atardecer
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
-scene.fog = new THREE.Fog(BG, LOW ? 50 : 70, LOW ? 260 : 330);
+scene.fog = new THREE.Fog(BG, LOW ? 60 : 90, LOW ? 380 : 620);
 
 const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 1300);
 let composer = null, baseFov = 58;
@@ -126,7 +127,7 @@ const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 
   const asphalt = noise(256, '#3d4548', 255); asphalt.repeat.set(26, 26);
   const grassT = noise(256, '#2f5a36', 255); grassT.repeat.set(30, 30);
   const mk = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; scene.add(m); return m; };
-  mk(new THREE.CircleGeometry(WORLD_R + 120, LOW ? 48 : 96), new THREE.MeshStandardMaterial({ map: grassT, roughness: 1 }), -0.02);
+  mk(new THREE.CircleGeometry(WORLD_R + 330, LOW ? 48 : 96), new THREE.MeshStandardMaterial({ map: grassT, roughness: 1 }), -0.02);
   mk(new THREE.RingGeometry(WORLD_R, WORLD_R + 7, 128), new THREE.MeshStandardMaterial({ color: 0x8a8d86, roughness: 0.95 }), 0.02);
   asphaltMat = new THREE.MeshStandardMaterial({ map: asphalt, bumpMap: asphalt, bumpScale: 1.2, roughness: 0.7 });
   mk(new THREE.CircleGeometry(WORLD_R, 128), asphaltMat, 0.04);
@@ -167,41 +168,98 @@ const sky = (() => {
 }
 
 const bridgeCars = [];
+let cityTraffic = null;
 /* ---------- Bucaramanga: montañas, ciudad, catedral y parques ---------- */
 {
   const flat = (c, extra) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, flatShading: true, ...(extra || {}) });
   const MN = LOW ? 18 : 34;
   for (let i = 0; i < MN; i++) {
-    const a = (i / MN) * Math.PI * 2 + rand() * 0.1, r = 330 + rand() * 80, h = 55 + rand() * 90, rad = 60 + rand() * 60;
+    const a = (i / MN) * Math.PI * 2 + rand() * 0.1, r = 540 + rand() * 110, h = 100 + rand() * 160, rad = 110 + rand() * 90;
     const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 7 + (i % 3)), flat(i % 2 ? 0x1c4a45 : 0x22544c));
     m.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r); m.rotation.y = rand() * 6; scene.add(m);
   }
   // Cañón del Chicamocha: paredes rojizas escalonadas hacia un lado
   const canyonA = Math.PI * 0.78;
   for (let i = 0; i < 14; i++) {
-    const a = canyonA + (i - 7) * 0.075, r = 215 + (i % 3) * 14, h = 38 + rand() * 40;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(34, h, 22), flat(i % 2 ? 0x7a5039 : 0x8c5d3f));
+    const a = canyonA + (i - 7) * 0.075, r = 395 + (i % 3) * 18, h = 70 + rand() * 70;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(64, h, 38), flat(i % 2 ? 0x7a5039 : 0x8c5d3f));
     m.position.set(Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r); m.lookAt(0, h / 2, 0); scene.add(m);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(36, 5, 24), flat(0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(66, 6, 40), flat(0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
   }
-  // Edificios con ventanas encendidas
+  // Suelo de la ciudad: manzanas y calles
+  {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+    g.fillStyle = '#394042'; g.fillRect(0, 0, 256, 256);
+    g.fillStyle = '#242a2c'; g.fillRect(0, 108, 256, 40); g.fillRect(108, 0, 40, 256);
+    g.fillStyle = '#d9b43a'; for (let x = 0; x < 256; x += 32) { g.fillRect(x, 126, 16, 3); g.fillRect(126, x, 3, 16); }
+    for (let i = 0; i < 3000; i++) { const v = Math.floor(rand() * 255); g.fillStyle = `rgba(${v},${v},${v},0.06)`; g.fillRect(rand() * 256, rand() * 256, 2, 2); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = AN; t.repeat.set(14, 14);
+    const cf = new THREE.Mesh(new THREE.RingGeometry(108, 380, 128), new THREE.MeshStandardMaterial({ map: t, roughness: 0.9 }));
+    cf.rotation.x = -Math.PI / 2; cf.position.y = 0.01; cf.receiveShadow = true; scene.add(cf);
+    // avenida circular alrededor del parque
+    const road = new THREE.Mesh(new THREE.RingGeometry(108, 124, 160), new THREE.MeshStandardMaterial({ color: 0x23292b, roughness: 0.85 }));
+    road.rotation.x = -Math.PI / 2; road.position.y = 0.03; road.receiveShadow = true; scene.add(road);
+    const lineM = new THREE.MeshBasicMaterial({ color: 0xe9b93a });
+    const ln = new THREE.Mesh(new THREE.RingGeometry(115.8, 116.2, 160), lineM); ln.rotation.x = -Math.PI / 2; ln.position.y = 0.05; scene.add(ln);
+  }
+  // Edificios: una sola malla instanciada; las ventanas se calculan por tamaño real (no se estiran)
   const winTex = (() => {
     const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d');
     g.fillStyle = '#1a2023'; g.fillRect(0, 0, 64, 128);
-    for (let y = 6; y < 124; y += 12) for (let x = 6; x < 60; x += 14) { g.fillStyle = rand() > 0.55 ? '#ffd58a' : '#2c3a40'; g.fillRect(x, y, 8, 7); }
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+    for (let y = 6; y < 124; y += 12) for (let x = 6; x < 60; x += 14) { g.fillStyle = rand() > 0.5 ? '#ffd58a' : '#2c3a40'; g.fillRect(x, y, 8, 7); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = AN; return t;
   })();
-  const tones = [0xb9b2a4, 0xa7a79f, 0xc7b79a, 0x9aa5a6, 0xb3a28a, 0x8f9a94];
-  const BN = LOW ? 36 : 70;
-  for (let i = 0; i < BN; i++) {
-    const a = (i / BN) * Math.PI * 2 + (rand() - 0.5) * 0.06, r = 118 + rand() * 60;
-    let da = Math.abs(a - canyonA) % (Math.PI * 2); if (da > Math.PI) da = Math.PI * 2 - da;
-    if (da < 0.5) continue; // hueco para el cañón
-    const w = 10 + rand() * 12, d = 10 + rand() * 10, h = 14 + rand() * 52;
-    const geo = new THREE.BoxGeometry(w, h, d);
-    const uv = geo.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * Math.max(1, Math.round(w / 6)), uv.getY(k) * Math.max(1, Math.round(h / 9)));
-    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: tones[i % tones.length], roughness: 0.9, map: winTex, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0.55 }));
-    m.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r); m.rotation.y = -a + (rand() - 0.5) * 0.3; m.castShadow = true; scene.add(m);
+  const bMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, map: winTex, emissive: 0xffffff, emissiveMap: winTex, emissiveIntensity: 0.6 });
+  bMat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vWin; varying float vRoof;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vec3 sc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
+        vec3 lp = position * sc;
+        vWin = abs(normal.x) > 0.5 ? vec2(lp.z, lp.y) : vec2(lp.x, lp.y);
+        vRoof = abs(normal.y) > 0.5 ? 1.0 : 0.0;`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vWin; varying float vRoof;')
+      .replace('#include <map_fragment>', 'vec4 wt = texture2D(map, vWin / vec2(6.0, 9.0)); wt = mix(wt, vec4(0.32, 0.32, 0.32, 1.0), vRoof); diffuseColor *= wt;')
+      .replace('#include <emissivemap_fragment>', 'vec4 em = texture2D(emissiveMap, vWin / vec2(6.0, 9.0)); totalEmissiveRadiance *= mix(em.rgb, vec3(0.0), vRoof);');
+  };
+  const tones = [0xb9b2a4, 0xa7a79f, 0xc7b79a, 0x9aa5a6, 0xb3a28a, 0x8f9a94, 0xc2b8a8, 0x7f8b8f];
+  const NB = LOW ? 120 : 340;
+  const bm = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), bMat, NB);
+  {
+    const d = new THREE.Object3D(), col = new THREE.Color();
+    for (let i = 0; i < NB; i++) {
+      const a = rand() * Math.PI * 2, r = 130 + Math.pow(rand(), 0.85) * 195;
+      const w = 9 + rand() * 17, dp = 9 + rand() * 17;
+      const downtown = Math.max(0, 1 - Math.abs(r - 190) / 75);
+      const h = 12 + rand() * 40 + downtown * rand() * 85 + (rand() > 0.965 ? 55 : 0);
+      d.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r);
+      d.rotation.set(0, -a + (rand() < 0.5 ? 0 : Math.PI / 2), 0);
+      d.scale.set(w, h, dp); d.updateMatrix();
+      bm.setMatrixAt(i, d.matrix); col.setHex(tones[i % tones.length]); bm.setColorAt(i, col);
+    }
+  }
+  bm.frustumCulled = false; scene.add(bm);
+  // Tráfico por la avenida circular
+  {
+    const NCARS = LOW ? 14 : 36;
+    const carsM = new THREE.InstancedMesh(new THREE.BoxGeometry(3.4, 1.2, 1.7), new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.3 }), NCARS);
+    const lightsM = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.25, 1.4), new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 2.8, 2.2), toneMapped: false }), NCARS);
+    const pal = [0xc0392b, 0x2f6fb5, 0xe9e4d8, 0xd9a21b, 0x3a7d44, 0x222222, 0x8e44ad];
+    const col = new THREE.Color();
+    const info = [];
+    for (let i = 0; i < NCARS; i++) { col.setHex(pal[i % pal.length]); carsM.setColorAt(i, col); info.push({ a: rand() * Math.PI * 2, lane: i % 2 ? 1 : -1, speed: 0.05 + rand() * 0.04 }); }
+    carsM.frustumCulled = lightsM.frustumCulled = false; scene.add(carsM, lightsM);
+    const o = new THREE.Object3D();
+    cityTraffic = (dt) => {
+      for (let i = 0; i < NCARS; i++) {
+        const c = info[i]; c.a += c.lane * c.speed * dt; const r = 116 + c.lane * 4;
+        o.position.set(Math.cos(c.a) * r, 0.9, Math.sin(c.a) * r);
+        o.rotation.set(0, -c.a + (c.lane > 0 ? Math.PI : 0), 0); o.updateMatrix(); carsM.setMatrixAt(i, o.matrix);
+        o.translateX(1.65); o.updateMatrix(); lightsM.setMatrixAt(i, o.matrix);
+      }
+      carsM.instanceMatrix.needsUpdate = true; lightsM.instanceMatrix.needsUpdate = true;
+    };
   }
   // Catedral de la Sagrada Familia (simplificada): nave crema, dos torres y cúpula verde
   {
@@ -217,7 +275,7 @@ const bridgeCars = [];
     const ang = Math.PI * 1.25; g.position.set(Math.cos(ang) * 98, 0, Math.sin(ang) * 98); g.lookAt(0, 0, 0); scene.add(g);
   }
   // Árboles (ceibas y palmas) en el parque que rodea la plaza
-  const N = LOW ? 56 : 120;
+  const N = LOW ? 60 : 160;
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 5, 6), flat(0x5a3d29), N);
   const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.4, 0), flat(0x2f7a45), N);
   const palms = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 4.5, 7), flat(0x4d9a52), N);
@@ -427,6 +485,7 @@ const envMap = (() => {
 })();
 if (asphaltMat) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
 const ae86 = buildAE86(THREE, { envMap, detail: !LOW });
+tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'));
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (!LOW) car.add(beam, beam.target);
@@ -609,8 +668,10 @@ let ftAvg = 16, ftCount = 0;
 function adaptResolution(rawDt) {
   ftAvg += (rawDt * 1000 - ftAvg) * 0.08; ftCount++;
   if (ftCount < 90 || ftCount % 45) return;
-  if (ftAvg > 26 && pr > 0.6) { pr = Math.max(0.6, pr - 0.15); applyPR(); }
-  else if (ftAvg < 15 && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + 0.1); applyPR(); }
+  // En escritorio solo se baja la resolución si de verdad va mal (<20 fps) y nunca bajo 1x
+  const slow = LOW ? 26 : 50, floor = LOW ? 0.6 : 1.0, fast = LOW ? 15 : 22;
+  if (ftAvg > slow && pr > floor) { pr = Math.max(floor, pr - 0.15); applyPR(); }
+  else if (ftAvg < fast && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + 0.1); applyPR(); }
 }
 
 function frame() {
@@ -631,6 +692,7 @@ function frame() {
 
   sun.position.set(S.x - 40, 34, S.z - 30); sun.target.position.set(S.x, 0, S.z);
   sky.position.copy(camera.position);
+  if (cityTraffic) cityTraffic(dt);
   bridgeCars.forEach((b) => { b.x += b.dir * b.speed * dt; if (b.x > 42) b.x = -42; if (b.x < -42) b.x = 42; b.c.position.x = b.x; });
 
   camera.fov += (baseFov + Math.min(m.sp, 36) * 0.22 - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix();
