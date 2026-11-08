@@ -35,6 +35,8 @@
     .btn:focus-visible, .panel a:focus-visible, .close:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; }
     .bar-right { display: flex; gap: 8px; }
 
+    #toast { position: fixed; top: 72px; left: 50%; transform: translate(-50%, -8px); z-index: 7; padding: 0.55rem 1rem; font-size: 0.9rem; font-weight: 600; color: var(--text); background: rgba(14, 40, 31, 0.78); border: 1px solid var(--border); border-radius: 12px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; max-width: calc(100vw - 24px); text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
     .hint { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
     .hint kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; color: var(--accent-light); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; margin: 0 1px; }
     .hint.hide { opacity: 0; }
@@ -95,6 +97,7 @@
   <div class="topbar">
     <a class="btn glass" href="../">← Portafolio clásico</a>
     <div class="bar-right">
+      <button class="btn glass" id="btn-q" type="button" title="Cambiar la calidad gráfica (Eco, Normal, Alta)">Calidad</button>
       <button class="btn glass" id="btn-list" type="button">Lista de proyectos</button>
       <button class="btn glass" id="btn-help" type="button" aria-label="Ver controles">?</button>
     </div>

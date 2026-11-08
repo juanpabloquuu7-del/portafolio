@@ -73,7 +73,7 @@ try {
 }
 // Escritorio: supermuestreo (mínimo 1.5x) para que la imagen salga nítida; celular: ligero
 // Estilo caricatura ligero por defecto (poca RAM/GPU). `?hq` activa el modo realista con postprocesado.
-const PR_MAX = Math.min(devicePixelRatio, LOW ? 1.0 : 1.25);
+let PR_MAX = Math.min(devicePixelRatio, LOW ? 1.0 : 1.25);
 let pr = PR_MAX;
 renderer.setPixelRatio(pr);
 let composerRef = null;
@@ -466,16 +466,41 @@ const addProp = (kind, x, z) => {
   scene.add(mesh);
   props.push({ mesh, x, z, vx: 0, vz: 0, r, m, kind, spin: 0 });
 };
+// Insignias de tecnologías: al chocarlas salen disparadas hacia el proyecto donde más se usan
+const toastEl = document.createElement('div'); toastEl.id = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl);
+let toastTimer = 0;
+const toast = (msg) => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800); };
+const BADGES = [
+  ['JS', '#f7df1e', '#1d1d1d', 'hotel'], ['HTML', '#e44d26', '#ffffff', 'hotel'], ['CSS', '#2965f1', '#ffffff', 'ecommerce'], ['three.js', '#1d1d1f', '#ffffff', 'hotel'],
+  ['JS', '#f7df1e', '#1d1d1d', 'ecommerce'], ['Python', '#3776ab', '#ffd43b', 'ia'], ['Python', '#3776ab', '#ffd43b', 'comunidad'], ['Streamlit', '#ff4b4b', '#ffffff', 'ia'],
+  ['Gemini', '#6a5cff', '#ffffff', 'ia'], ['Java', '#e76f00', '#ffffff', 'erp'], ['MySQL', '#00758f', '#ffffff', 'erp'], ['Maven', '#c71a36', '#ffffff', 'erp'],
+  ['JSON', '#5b5b5b', '#ffffff', 'comunidad'], ['Web Comp.', '#29abe2', '#06304a', 'ecommerce'], ['PWA', '#5a0fc8', '#ffffff', 'hotel'],
+];
+const badgeGeo = new THREE.BoxGeometry(1.7, 1.7, 1.7);
+const badgeTex = (label, bg, fg) => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, 256, 256);
+  g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 14; g.strokeRect(7, 7, 242, 242);
+  let size = 120; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`;
+  while (g.measureText(label).width > 212 && size > 30) { size -= 6; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`; }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 128, 134);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = AN; return t;
+};
 const rnd = (a, b) => a + Math.random() * (b - a);
-// pila de cajas frente al inicio y conos en arco
-for (let i = 0; i < 3; i++) for (let j = 0; j < 3 - i; j++) addProp('crate', -2.7 + i * 1.8 + j * 0.9, -11 - j * 1.8);
-const NCONE = LOW ? 9 : 14;
-for (let i = 0; i < NCONE; i++) { const a = (i / NCONE) * Math.PI * 2; addProp('cone', Math.sin(a) * 12, Math.cos(a) * 12 - 2); }
-for (let i = 0; i < (LOW ? 3 : 6); i++) addProp('ball', rnd(-18, 18), rnd(2, 24));
-for (let i = 0; i < (LOW ? 8 : 14); i++) {
-  let x, z, ok;
-  do { x = rnd(-50, 50); z = rnd(-45, 45); ok = Math.hypot(x, z) < WORLD_R - 4 && statics.every((s) => Math.hypot(s.x - x, s.z - z) > 9) && Math.hypot(x, z) > 7; } while (!ok);
-  addProp('crate', x, z);
+BADGES.forEach(([label, bg, fg, target]) => {
+  let x, z, ok, tries = 0;
+  do { x = rnd(-52, 52); z = rnd(-46, 46); ok = Math.hypot(x, z) < WORLD_R - 5 && Math.hypot(x, z) > 8 && statics.every((s) => Math.hypot(s.x - x, s.z - z) > 9) && props.every((q) => Math.hypot(q.x - x, q.z - z) > 4); tries++; } while (!ok && tries < 200);
+  const mesh = new THREE.Mesh(badgeGeo, new THREE.MeshStandardMaterial({ map: badgeTex(label, bg, fg), roughness: 0.6 }));
+  mesh.castShadow = mesh.receiveShadow = true; mesh.position.set(x, 0.85, z); mesh.rotation.y = Math.random() * 6; scene.add(mesh);
+  props.push({ mesh, x, z, vx: 0, vz: 0, r: 1.2, m: 1.1, kind: 'badge', spin: 0, label, target, home: { x, z }, launch: 0, launched: false, t: 0 });
+});
+function launchBadge(p) {
+  const zone = ZONES.find((zz) => zz.id === p.target); if (!zone) return;
+  const dx = zone.pos[0] - p.x, dz = zone.pos[1] - p.z, d = Math.hypot(dx, dz) || 1;
+  const sp = Math.min(34, Math.max(16, d * 0.55));
+  p.vx = (dx / d) * sp; p.vz = (dz / d) * sp; p.launch = 4; p.t = 0;
+  if (!p.launched) toast(`${p.label} → ${zone.title}`);
+  p.launched = true;
 }
 
 /* ---------- Carro: Toyota AE86 ---------- */
@@ -629,13 +654,18 @@ function step(dt) {
         const j = (1.45 * rel) / (1 + 1 / (p.m * 3));
         p.vx += nx * j; p.vz += nz * j; S.vx -= nx * j * (p.m * 0.12); S.vz -= nz * j * (p.m * 0.12);
         p.spin = (Math.random() - 0.5) * 8;
+        if (p.target) launchBadge(p);
       }
     }
   });
   // props: movimiento, fricción, bordes y choques
   props.forEach((p, i) => {
     p.x += p.vx * dt; p.z += p.vz * dt;
-    const f = Math.exp(-1.7 * dt); p.vx *= f; p.vz *= f; p.spin *= f;
+    if (p.target) {
+      if (p.launch > 0) p.launch -= dt;
+      if (p.launched) { p.t += dt; if (p.t > 10) { p.x = p.home.x; p.z = p.home.z; p.vx = p.vz = 0; p.launched = false; p.launch = 0; } }
+    }
+    const f = Math.exp(-(p.launch > 0 ? 0.45 : 1.7) * dt); p.vx *= f; p.vz *= f; p.spin *= f;
     const pd = Math.hypot(p.x, p.z); if (pd > WORLD_R - 1) { const nx = p.x / pd, nz = p.z / pd; p.x = nx * (WORLD_R - 1); p.z = nz * (WORLD_R - 1); const vn = p.vx * nx + p.vz * nz; if (vn > 0) { p.vx -= 1.8 * vn * nx; p.vz -= 1.8 * vn * nz; } }
     statics.forEach((s) => { const dx = p.x - s.x, dz = p.z - s.z, dist = Math.hypot(dx, dz), min = p.r + s.r; if (dist < min && dist > 0.0001) { const nx = dx / dist, nz = dz / dist; p.x += nx * (min - dist); p.z += nz * (min - dist); const vn = p.vx * nx + p.vz * nz; if (vn < 0) { p.vx -= 1.6 * vn * nx; p.vz -= 1.6 * vn * nz; } } });
     for (let j = i + 1; j < props.length; j++) {
@@ -674,6 +704,29 @@ function updateZones(t) {
   if (found !== activeZone) showZone(found);
 }
 
+const QUALITY = {
+  eco:    { label: 'Eco',    pr: 0.7,  cap: 30, shadows: false, shEvery: 3 },
+  normal: { label: 'Normal', pr: 1.0,  cap: 60, shadows: true,  shEvery: 2 },
+  alta:   { label: 'Alta',   pr: 1.25, cap: 0,  shadows: true,  shEvery: 1 },
+};
+let qKey = LOW ? 'eco' : 'normal';
+try { qKey = localStorage.getItem('mundoQ') || qKey; } catch (e) {}
+if (!QUALITY[qKey]) qKey = 'normal';
+if (HQ) qKey = 'alta';
+let capMs = 0, shEvery = 2, frameN = 0, fpsAcc = 0, fpsCount = 0, lastDraw = 0, fpsText = '';
+const btnQ = $('btn-q');
+function applyQuality() {
+  const q = QUALITY[qKey];
+  PR_MAX = q.pr; pr = PR_MAX; applyPR();
+  capMs = q.cap ? 1000 / q.cap : 0; shEvery = q.shEvery;
+  sun.castShadow = q.shadows; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
+  if (btnQ) btnQ.textContent = `Calidad: ${q.label}${fpsText}`;
+}
+if (btnQ) btnQ.addEventListener('click', () => {
+  const keys = Object.keys(QUALITY); qKey = keys[(keys.indexOf(qKey) + 1) % keys.length];
+  try { localStorage.setItem('mundoQ', qKey); } catch (e) {}
+  applyQuality(); toast(`Calidad ${QUALITY[qKey].label}: ${qKey === 'eco' ? '30 fps, sin sombras, resolución baja' : qKey === 'normal' ? '60 fps, sombras suaves' : 'máxima nitidez, sin límite de fps'}`);
+});
 let ftAvg = 16, ftCount = 0;
 function adaptResolution(rawDt) {
   ftAvg += (rawDt * 1000 - ftAvg) * 0.08; ftCount++;
@@ -685,7 +738,13 @@ function adaptResolution(rawDt) {
 }
 
 function frame() {
+  const nowMs = performance.now();
+  if (capMs && nowMs - lastDraw < capMs - 2) { requestAnimationFrame(frame); return; }
+  lastDraw = nowMs;
   const rawDt = clock.getDelta();
+  frameN++; fpsAcc += rawDt; fpsCount++;
+  if (fpsAcc >= 0.7) { fpsText = ` · ${Math.round(fpsCount / fpsAcc)} fps`; if (btnQ) btnQ.textContent = `Calidad: ${QUALITY[qKey].label}${fpsText}`; fpsAcc = 0; fpsCount = 0; }
+  if (frameN % shEvery === 0) renderer.shadowMap.needsUpdate = true;
   const dt = Math.min(rawDt, 0.05), t = clock.elapsedTime;
   adaptResolution(rawDt);
   const m = step(dt);
@@ -718,6 +777,7 @@ if (TOON) {
   props.forEach((p) => outline(p.mesh, p.kind === 'cone' ? 1.12 : 1.07));
   zoneObjs.forEach((zo) => { const list = []; zo.obj.traverse((o) => { if (o.isMesh) list.push(o); }); list.forEach((o) => outline(o, 1.06)); });
 }
+applyQuality();
 resetCar();
 if (FX) {
   try {
