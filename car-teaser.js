@@ -28,7 +28,7 @@ if (view && canvas) {
     const rim = new THREE.PointLight(0x22d6a3, 40, 14); rim.position.set(-4, 2, -3); scene.add(rim);
 
     const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
-    const car = buildAE86(THREE, { envMap }).group;
+    const car = buildAE86(THREE, { envMap, detail: !lowEnd }).group;
     scene.add(car);
 
     const disc = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.2, 64), new THREE.MeshStandardMaterial({ color: 0x0f2a22, roughness: 0.5, metalness: 0.3 }));

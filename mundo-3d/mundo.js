@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { buildAE86 } from '../ae86.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,8 +74,11 @@ try {
 const PR_MAX = LOW ? Math.min(devicePixelRatio, 1.25) : Math.min(devicePixelRatio, 2);
 let pr = PR_MAX;
 renderer.setPixelRatio(pr);
+let composerRef = null;
+const applyPR = () => { renderer.setPixelRatio(pr); if (composerRef) composerRef.setPixelRatio(pr); };
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = LOW ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+const FX = !LOW && !location.search.includes('fx=0');
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -86,12 +88,15 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
 scene.fog = new THREE.Fog(BG, LOW ? 50 : 70, LOW ? 260 : 330);
 
-const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 400);
+const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 1300);
+let composer = null, baseFov = 58;
 const resize = () => {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
+  if (composer) composer.setSize(w, h);
   camera.aspect = w / h;
-  camera.fov = w < h ? 72 : 58;
+  baseFov = w < h ? 72 : 58;
+  camera.fov = baseFov;
   camera.updateProjectionMatrix();
 };
 addEventListener('resize', resize); resize();
@@ -101,13 +106,15 @@ scene.add(new THREE.HemisphereLight(0x9fd4d8, 0x46535a, 1.1));
 const sun = new THREE.DirectionalLight(0xffc592, 3.0);
 sun.position.set(-40, 34, -30);
 sun.castShadow = true;
-sun.shadow.mapSize.set(LOW ? 1024 : 2048, LOW ? 1024 : 2048);
-Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 140 });
+sun.shadow.mapSize.set(LOW ? 1024 : 4096, LOW ? 1024 : 4096);
+Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 1, far: 160 });
+sun.shadow.normalBias = 0.02;
 sun.shadow.bias = -0.0004;
 scene.add(sun, sun.target);
 
 /* Suelo: plaza de asfalto con glorieta, andén y parque alrededor */
 const WORLD_R = 62;
+let asphaltMat = null;
 const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 1) / 2147483646; })();
 {
   const noise = (w, base, spread) => {
@@ -121,7 +128,8 @@ const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 
   const mk = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; scene.add(m); return m; };
   mk(new THREE.CircleGeometry(WORLD_R + 120, LOW ? 48 : 96), new THREE.MeshStandardMaterial({ map: grassT, roughness: 1 }), -0.02);
   mk(new THREE.RingGeometry(WORLD_R, WORLD_R + 7, 128), new THREE.MeshStandardMaterial({ color: 0x8a8d86, roughness: 0.95 }), 0.02);
-  mk(new THREE.CircleGeometry(WORLD_R, 128), new THREE.MeshStandardMaterial({ map: asphalt, roughness: 0.92 }), 0.04);
+  asphaltMat = new THREE.MeshStandardMaterial({ map: asphalt, bumpMap: asphalt, bumpScale: 1.2, roughness: 0.7 });
+  mk(new THREE.CircleGeometry(WORLD_R, 128), asphaltMat, 0.04);
   const curb = new THREE.Mesh(new THREE.TorusGeometry(WORLD_R + 0.2, 0.28, 8, 160), new THREE.MeshStandardMaterial({ color: 0xc9c9c0, roughness: 0.8 }));
   curb.rotation.x = Math.PI / 2; curb.position.y = 0.1; scene.add(curb);
   const ring = (r0, r1, color, op, dash) => {
@@ -271,6 +279,23 @@ const bridgeCars = [];
     bg.userData.len = L;
     window.__bridge = bg;
   }
+  // Farolas alrededor de la plaza
+  {
+    const NL = LOW ? 12 : 24;
+    const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.1, 0.14, 7, 8), flat(0x22302c), NL);
+    const arms = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.1, 1.6), flat(0x22302c), NL);
+    const heads = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 0.12, 0.9), new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 3, 1.8), toneMapped: false }), NL);
+    const pools = new THREE.InstancedMesh(new THREE.CircleGeometry(6.5, 24), new THREE.MeshBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending }), NL);
+    const o = new THREE.Object3D();
+    for (let i = 0; i < NL; i++) {
+      const a = (i / NL) * Math.PI * 2, r = WORLD_R + 2.2, x = Math.cos(a) * r, z = Math.sin(a) * r, inX = -Math.cos(a), inZ = -Math.sin(a);
+      o.rotation.set(0, 0, 0); o.position.set(x, 3.5, z); o.updateMatrix(); poles.setMatrixAt(i, o.matrix);
+      o.rotation.set(0, Math.atan2(inX, inZ), 0); o.position.set(x + inX * 0.8, 7.05, z + inZ * 0.8); o.updateMatrix(); arms.setMatrixAt(i, o.matrix);
+      o.position.set(x + inX * 1.5, 6.95, z + inZ * 1.5); o.updateMatrix(); heads.setMatrixAt(i, o.matrix);
+      o.rotation.set(-Math.PI / 2, 0, 0); o.position.set(x + inX * 3.4, 0.09, z + inZ * 3.4); o.updateMatrix(); pools.setMatrixAt(i, o.matrix);
+    }
+    [poles, arms, heads, pools].forEach((m) => scene.add(m)); poles.castShadow = true;
+  }
   // Cartel de bienvenida frente al inicio
   const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
   g.fillStyle = '#0b1c17'; g.fillRect(0, 0, 1024, 256); g.strokeStyle = '#22d6a3'; g.lineWidth = 8; g.strokeRect(6, 6, 1012, 244);
@@ -388,8 +413,20 @@ for (let i = 0; i < (LOW ? 8 : 14); i++) {
 }
 
 /* ---------- Carro: Toyota AE86 ---------- */
-const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
-const ae86 = buildAE86(THREE, { envMap });
+const envMap = (() => {
+  const es = new THREE.Scene();
+  es.add(new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: sky.material.map, side: THREE.BackSide })));
+  const sunDot = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(16, 10, 5) }));
+  sunDot.position.set(-40, 34, -30).normalize().multiplyScalar(48); es.add(sunDot);
+  [[0, 50, 0, 40, 10], [-30, 28, 28, 18, 6], [34, 20, -10, 12, 5]].forEach(([x, y, z, w, h]) => {
+    const sb = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 3.4, 3.6), side: THREE.DoubleSide }));
+    sb.position.set(x, y, z); sb.lookAt(0, 0, 0); es.add(sb);
+  });
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(80, 32), new THREE.MeshBasicMaterial({ color: 0x20262a })); floor.rotation.x = -Math.PI / 2; floor.position.y = -4; es.add(floor);
+  return new THREE.PMREMGenerator(renderer).fromScene(es, 0.012).texture;
+})();
+if (asphaltMat) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
+const ae86 = buildAE86(THREE, { envMap, detail: !LOW });
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (!LOW) car.add(beam, beam.target);
@@ -572,8 +609,8 @@ let ftAvg = 16, ftCount = 0;
 function adaptResolution(rawDt) {
   ftAvg += (rawDt * 1000 - ftAvg) * 0.08; ftCount++;
   if (ftCount < 90 || ftCount % 45) return;
-  if (ftAvg > 26 && pr > 0.6) { pr = Math.max(0.6, pr - 0.15); renderer.setPixelRatio(pr); }
-  else if (ftAvg < 15 && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + 0.1); renderer.setPixelRatio(pr); }
+  if (ftAvg > 26 && pr > 0.6) { pr = Math.max(0.6, pr - 0.15); applyPR(); }
+  else if (ftAvg < 15 && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + 0.1); applyPR(); }
 }
 
 function frame() {
@@ -596,9 +633,33 @@ function frame() {
   sky.position.copy(camera.position);
   bridgeCars.forEach((b) => { b.x += b.dir * b.speed * dt; if (b.x > 42) b.x = -42; if (b.x < -42) b.x = 42; b.c.position.x = b.x; });
 
-  renderer.render(scene, camera);
+  camera.fov += (baseFov + Math.min(m.sp, 36) * 0.22 - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix();
+  if (composer) composer.render(); else renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 
 resetCar();
+if (FX) {
+  try {
+    const base = 'three/addons/';
+    const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }, { GTAOPass }] = await Promise.all([
+      import(base + 'postprocessing/EffectComposer.js'), import(base + 'postprocessing/RenderPass.js'),
+      import(base + 'postprocessing/UnrealBloomPass.js'), import(base + 'postprocessing/OutputPass.js'), import(base + 'postprocessing/GTAOPass.js'),
+    ]);
+    const w = innerWidth, h = innerHeight;
+    const rt = new THREE.WebGLRenderTarget(w * pr, h * pr, { type: THREE.HalfFloatType, samples: 4 });
+    composer = new EffectComposer(renderer, rt);
+    composer.setPixelRatio(pr); composer.setSize(w, h);
+    composer.addPass(new RenderPass(scene, camera));
+    try {
+      const ao = new GTAOPass(scene, camera, w, h);
+      ao.updateGtaoMaterial({ radius: 0.9, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 12, distanceFallOff: 1, screenSpaceRadius: false });
+      ao.blendIntensity = 0.85;
+      composer.addPass(ao);
+    } catch (e) { console.warn('GTAO no disponible', e); }
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(w, h), 0.55, 0.65, 0.92));
+    composer.addPass(new OutputPass());
+    composerRef = composer;
+  } catch (e) { console.warn('Postprocesado desactivado', e); composer = null; }
+}
 requestAnimationFrame(() => { frame(); $('loading').classList.add('done'); });
