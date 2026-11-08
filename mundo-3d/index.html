@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mundo 3D | Juan Pablo Quintanilla</title>
+  <meta name="description" content="Portafolio interactivo de Juan Pablo Quintanilla: maneja un carro por un mundo 3D y visita cada proyecto." />
+  <meta name="theme-color" content="#060907" />
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --bg: #060907; --card: #0f2a22; --accent: #22d6a3; --accent-light: #7dffce;
+      --text: #e2f4ed; --muted: #8aab9f; --border: rgba(213, 239, 230, 0.22);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; overscroll-behavior: none; touch-action: none; }
+    canvas#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+    .glass {
+      background: rgba(14, 40, 31, 0.38);
+      -webkit-backdrop-filter: blur(14px) saturate(180%);
+      backdrop-filter: blur(14px) saturate(180%);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 18px 40px -20px rgba(0, 0, 0, 0.8);
+      border-radius: 14px;
+    }
+    .topbar { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 8px; z-index: 5; pointer-events: none; }
+    .topbar > * { pointer-events: auto; }
+    .btn {
+      appearance: none; font: inherit; font-size: 0.875rem; font-weight: 600; color: var(--text); text-decoration: none; cursor: pointer;
+      padding: 0.6rem 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent-light); }
+    .btn:focus-visible, .panel a:focus-visible, .close:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; }
+    .bar-right { display: flex; gap: 8px; }
+
+    .hint { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
+    .hint kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; color: var(--accent-light); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; margin: 0 1px; }
+    .hint.hide { opacity: 0; }
+    @media (hover: none) { .hint { display: none; } }
+
+    .panel { position: fixed; z-index: 6; right: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); padding: 1.25rem 1.25rem 1.1rem; transform: translateY(24px) scale(0.98); opacity: 0; pointer-events: none; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.25s ease; border-top: 3px solid var(--zone, var(--accent)); }
+    .panel.open { transform: none; opacity: 1; pointer-events: auto; }
+    .panel .num { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.08em; color: var(--zone, var(--accent)); font-weight: 600; }
+    .panel h2 { font-size: 1.375rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0.35rem 0 0.5rem; text-wrap: balance; }
+    .panel p { font-size: 0.9375rem; line-height: 1.5; color: #c4ddd3; }
+    .panel .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.75rem 0; }
+    .panel .tags span { font-size: 0.75rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); background: rgba(6, 9, 7, 0.35); }
+    .panel .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0.9rem; }
+    .panel .links a { font-size: 0.875rem; font-weight: 600; text-decoration: none; padding: 0.55rem 0.9rem; min-height: 44px; display: inline-flex; align-items: center; border-radius: 10px; border: 1px solid var(--border); color: var(--text); background: rgba(6, 9, 7, 0.35); }
+    .panel .links a.primary { background: var(--accent); border-color: var(--accent); color: #03140e; }
+    .panel .links a:hover { border-color: var(--accent-light); }
+    .panel .links a.primary:hover { background: var(--accent-light); }
+    .panel .key { font-size: 0.75rem; color: var(--muted); margin-top: 0.7rem; }
+    .panel .key kbd { font-family: ui-monospace, Consolas, monospace; color: var(--accent-light); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
+    @media (hover: none) { .panel .key { display: none; } }
+    @media (max-width: 640px) { .panel { right: 8px; left: 8px; width: auto; bottom: 150px; } }
+
+    .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(6, 9, 7, 0.7); }
+    .overlay.open { display: flex; }
+    .sheet { width: min(560px, 100%); max-height: 100%; overflow: auto; padding: 1.5rem; background: rgba(12, 33, 26, 0.92); }
+    .sheet h2 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    .sheet ul { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+    .sheet li { padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.9375rem; }
+    .sheet li strong { display: block; margin-bottom: 2px; }
+    .sheet li a { color: var(--accent-light); margin-right: 0.8rem; }
+    .sheet .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 0.5rem; }
+    .close { appearance: none; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 10px; min-width: 44px; min-height: 44px; cursor: pointer; font-size: 1.1rem; }
+    .sheet table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+    .sheet td { padding: 0.35rem 0; border-bottom: 1px solid rgba(213, 239, 230, 0.08); }
+    .sheet td:first-child { color: var(--accent-light); font-family: ui-monospace, Consolas, monospace; width: 45%; }
+
+    /* controles táctiles */
+    .touch { position: fixed; left: 0; right: 0; bottom: 0; height: 190px; z-index: 5; display: none; pointer-events: none; }
+    body.is-touch .touch { display: block; }
+    .stick { position: absolute; left: max(18px, env(safe-area-inset-left)); bottom: max(22px, env(safe-area-inset-bottom)); width: 128px; height: 128px; border-radius: 50%; pointer-events: auto; }
+    .stick .knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(34, 214, 163, 0.55); border: 1px solid var(--accent-light); }
+    .tbtns { position: absolute; right: max(18px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); display: grid; gap: 12px; pointer-events: auto; }
+    .tbtn { width: 78px; height: 78px; border-radius: 50%; font: inherit; font-weight: 700; font-size: 0.8125rem; color: var(--text); touch-action: none; user-select: none; -webkit-user-select: none; }
+    .tbtn.on { background: rgba(34, 214, 163, 0.5); }
+
+    .loading { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--bg); font-size: 0.9375rem; color: var(--muted); transition: opacity 0.6s ease; }
+    .loading.done { opacity: 0; pointer-events: none; }
+    .fallback { position: fixed; inset: 0; z-index: 30; display: none; place-items: center; text-align: center; padding: 24px; background: var(--bg); }
+    .fallback.show { display: grid; }
+    .fallback a { color: var(--accent-light); }
+    @media (prefers-reduced-motion: reduce) { .panel, .hint, .loading { transition: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="world" aria-label="Mundo 3D interactivo con los proyectos de Juan Pablo Quintanilla" role="img"></canvas>
+
+  <div class="topbar">
+    <a class="btn glass" href="../">← Portafolio clásico</a>
+    <div class="bar-right">
+      <button class="btn glass" id="btn-list" type="button">Lista de proyectos</button>
+      <button class="btn glass" id="btn-help" type="button" aria-label="Ver controles">?</button>
+    </div>
+  </div>
+
+  <div class="hint glass" id="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o flechas para conducir · <kbd>Espacio</kbd> derrape · <kbd>Shift</kbd> turbo · acércate a un cartel</div>
+
+  <aside class="panel glass" id="panel" role="region" aria-live="polite" aria-label="Detalle del proyecto">
+    <div class="num" id="p-num"></div>
+    <h2 id="p-title"></h2>
+    <p id="p-text"></p>
+    <div class="tags" id="p-tags"></div>
+    <div class="links" id="p-links"></div>
+    <div class="key">Pulsa <kbd>E</kbd> para abrir el enlace principal</div>
+  </aside>
+
+  <div class="touch" aria-hidden="true">
+    <div class="stick glass" id="stick"><div class="knob" id="knob"></div></div>
+    <div class="tbtns">
+      <button class="tbtn glass" id="t-boost" type="button">TURBO</button>
+      <button class="tbtn glass" id="t-drift" type="button">DERRAPE</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-list" role="dialog" aria-modal="true" aria-labelledby="ov-list-t">
+    <div class="sheet glass">
+      <div class="row"><h2 id="ov-list-t">Proyectos y contacto</h2><button class="close" type="button" data-close aria-label="Cerrar">✕</button></div>
+      <ul id="list-items"></ul>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-help" role="dialog" aria-modal="true" aria-labelledby="ov-help-t">
+    <div class="sheet glass">
+      <div class="row"><h2 id="ov-help-t">Controles</h2><button class="close" type="button" data-close aria-label="Cerrar">✕</button></div>
+      <table>
+        <tr><td>W A S D / flechas</td><td>Acelerar, frenar y girar</td></tr>
+        <tr><td>Espacio</td><td>Derrape</td></tr>
+        <tr><td>Shift</td><td>Turbo</td></tr>
+        <tr><td>E</td><td>Abrir el enlace del cartel cercano</td></tr>
+        <tr><td>R</td><td>Volver al inicio</td></tr>
+        <tr><td>Celular</td><td>Joystick a la izquierda, botones a la derecha</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">Cargando mundo 3D…</div>
+  <div class="fallback" id="fallback"><div><p>Tu navegador no pudo iniciar el mundo 3D.</p><p><a href="../">Ir al portafolio clásico</a></p></div></div>
+  <noscript><p style="position:fixed;inset:0;z-index:40;background:#060907;padding:2rem">Este mundo necesita JavaScript. <a href="../" style="color:#7dffce">Ir al portafolio clásico</a>.</p></noscript>
+
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="mundo.js"></script>
+</body>
+</html>
