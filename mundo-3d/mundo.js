@@ -470,29 +470,36 @@ const addProp = (kind, x, z) => {
 const toastEl = document.createElement('div'); toastEl.id = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl);
 let toastTimer = 0;
 const toast = (msg) => { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800); };
-const BADGES = [
-  ['JS', '#f7df1e', '#1d1d1d', 'hotel'], ['HTML', '#e44d26', '#ffffff', 'hotel'], ['CSS', '#2965f1', '#ffffff', 'ecommerce'], ['three.js', '#1d1d1f', '#ffffff', 'hotel'],
-  ['JS', '#f7df1e', '#1d1d1d', 'ecommerce'], ['Python', '#3776ab', '#ffd43b', 'ia'], ['Python', '#3776ab', '#ffd43b', 'comunidad'], ['Streamlit', '#ff4b4b', '#ffffff', 'ia'],
-  ['Gemini', '#6a5cff', '#ffffff', 'ia'], ['Java', '#e76f00', '#ffffff', 'erp'], ['MySQL', '#00758f', '#ffffff', 'erp'], ['Maven', '#c71a36', '#ffffff', 'erp'],
-  ['JSON', '#5b5b5b', '#ffffff', 'comunidad'], ['Web Comp.', '#29abe2', '#06304a', 'ecommerce'], ['PWA', '#5a0fc8', '#ffffff', 'hotel'],
+const BADGES = [   // [texto, logo (img/tech), proyecto al que viaja]
+  ['JavaScript', 'javascript', 'hotel'], ['HTML5', 'html5', 'hotel'], ['CSS3', 'css3', 'ecommerce'], ['three.js', 'threejs', 'hotel'],
+  ['JavaScript', 'javascript', 'ecommerce'], ['Python', 'python', 'ia'], ['Python', 'python', 'comunidad'], ['Streamlit', 'streamlit', 'ia'],
+  ['Gemini', 'gemini', 'ia'], ['Java', 'java', 'erp'], ['MySQL', 'mysql', 'erp'], ['Maven', 'maven', 'erp'],
+  ['JSON', 'json', 'comunidad'], ['Web Comp.', 'webcomponents', 'ecommerce'], ['PWA', 'pwa', 'hotel'],
 ];
-const badgeGeo = new THREE.BoxGeometry(1.7, 1.7, 1.7);
-const badgeTex = (label, bg, fg) => {
+const badgeGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+const badgeTex = (label, icon) => {
   const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
-  g.fillStyle = bg; g.fillRect(0, 0, 256, 256);
-  g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 14; g.strokeRect(7, 7, 242, 242);
-  let size = 120; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`;
-  while (g.measureText(label).width > 212 && size > 30) { size -= 6; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`; }
-  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 128, 134);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = AN; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = AN;
+  const paint = (img) => {
+    g.fillStyle = '#f6f1e7'; g.fillRect(0, 0, 256, 256);
+    g.strokeStyle = 'rgba(40,30,60,0.35)'; g.lineWidth = 14; g.strokeRect(7, 7, 242, 242);
+    if (img) g.drawImage(img, 36, 22, 184, 184);
+    let size = 38; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`;
+    while (g.measureText(label).width > 200 && size > 16) { size -= 2; g.font = `800 ${size}px system-ui, Segoe UI, Arial, sans-serif`; }
+    g.fillStyle = '#1d1633'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 128, img ? 228 : 128);
+    t.needsUpdate = true;
+  };
+  paint(null);
+  const img = new Image(); img.onload = () => paint(img); img.src = `../img/tech/${icon}.svg`;
+  return t;
 };
 const rnd = (a, b) => a + Math.random() * (b - a);
-BADGES.forEach(([label, bg, fg, target]) => {
+BADGES.forEach(([label, icon, target]) => {
   let x, z, ok, tries = 0;
   do { x = rnd(-52, 52); z = rnd(-46, 46); ok = Math.hypot(x, z) < WORLD_R - 5 && Math.hypot(x, z) > 8 && statics.every((s) => Math.hypot(s.x - x, s.z - z) > 9) && props.every((q) => Math.hypot(q.x - x, q.z - z) > 4); tries++; } while (!ok && tries < 200);
-  const mesh = new THREE.Mesh(badgeGeo, new THREE.MeshStandardMaterial({ map: badgeTex(label, bg, fg), roughness: 0.6 }));
-  mesh.castShadow = mesh.receiveShadow = true; mesh.position.set(x, 0.85, z); mesh.rotation.y = Math.random() * 6; scene.add(mesh);
-  props.push({ mesh, x, z, vx: 0, vz: 0, r: 1.2, m: 1.1, kind: 'badge', spin: 0, label, target, home: { x, z }, launch: 0, launched: false, t: 0 });
+  const mesh = new THREE.Mesh(badgeGeo, new THREE.MeshStandardMaterial({ map: badgeTex(label, icon), roughness: 0.6 }));
+  mesh.castShadow = mesh.receiveShadow = true; mesh.position.set(x, 1.25, z); mesh.rotation.y = Math.random() * 6; scene.add(mesh);
+  props.push({ mesh, x, z, vx: 0, vz: 0, r: 1.75, m: 1.1, kind: 'badge', spin: 0, label, target, home: { x, z }, launch: 0, launched: false, t: 0 });
 });
 function launchBadge(p) {
   const zone = ZONES.find((zz) => zz.id === p.target); if (!zone) return;
