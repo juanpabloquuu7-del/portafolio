@@ -29,12 +29,12 @@
   /* Cristal (glassmorphism): base oscura translúcida + velo claro/verde.
      La opacidad de la base mantiene AA del texto aunque detrás pase la zona
      más clara del fondo 3D. */
-  --glass-base: rgba(8, 22, 17, 0.66);
-  --glass-base-hover: rgba(13, 36, 28, 0.72);
-  --glass-tint: linear-gradient(150deg, rgba(226, 244, 237, 0.075) 0%, rgba(34, 214, 163, 0.03) 45%, rgba(226, 244, 237, 0.015) 100%);
-  --glass-border: rgba(213, 239, 230, 0.14);
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 14px 32px -20px rgba(0, 0, 0, 0.75);
-  --glass-blur: blur(12px) saturate(140%);
+  --glass-base: rgba(14, 40, 31, 0.40);
+  --glass-base-hover: rgba(20, 52, 41, 0.50);
+  --glass-tint: linear-gradient(150deg, rgba(226, 244, 237, 0.16) 0%, rgba(34, 214, 163, 0.07) 45%, rgba(226, 244, 237, 0.035) 100%);
+  --glass-border: rgba(213, 239, 230, 0.26);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 22px rgba(255, 255, 255, 0.025), 0 14px 32px -20px rgba(0, 0, 0, 0.75);
+  --glass-blur: blur(18px) saturate(160%);
 
   /* Tipografía */
   --font-main: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -1412,8 +1412,8 @@ html:not(.js) .project-card--featured:focus-within .card-back {
    desactivados): el cristal se vuelve casi opaco. */
 @media (prefers-reduced-transparency: reduce) {
   :root {
-    --glass-base: rgba(12, 33, 26, 0.92);
-    --glass-base-hover: rgba(16, 42, 33, 0.94);
+    --glass-base: rgba(12, 33, 26, 0.62);
+    --glass-base-hover: rgba(16, 42, 33, 0.70);
   }
 }
 
