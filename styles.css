@@ -1560,3 +1560,10 @@ h1, h2, h3,
 }
 .hero-name { font-weight: 800; letter-spacing: -0.035em; }
 .section-title, .project-title { font-weight: 700; letter-spacing: -0.03em; }
+
+/* Lista de proyectos junto al carro (alternativa en texto al mundo 3D) */
+.world-teaser-list { list-style: none; padding: 0; margin: var(--sp-4) 0 0; display: grid; gap: var(--sp-2); }
+.world-teaser-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); font-size: var(--fs-sm); color: var(--text-secondary); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border-card); }
+.world-teaser-list li span { color: var(--text-primary); font-weight: 600; margin-right: auto; }
+.world-teaser-list a { color: var(--accent-light); text-decoration: none; }
+.world-teaser-list a:hover { text-decoration: underline; }
