@@ -485,7 +485,7 @@ const envMap = (() => {
 })();
 if (asphaltMat) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
 const ae86 = buildAE86(THREE, { envMap, detail: !LOW });
-tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'));
+if (!LOW && !location.search.includes('procedural')) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'));
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (!LOW) car.add(beam, beam.target);

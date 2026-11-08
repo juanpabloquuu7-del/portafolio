@@ -295,8 +295,10 @@ export function buildAE86(THREE, opts = {}) {
 }
 
 
-// Si existe un modelo real (.glb) lo usa en lugar del carro procedural.
-// Se normaliza (tamaño, centro, orientación). Con ?flip se invierte el frente.
+// Si existe un modelo hecho en Blender (.glb) lo usa en lugar del carro procedural.
+// Se normaliza (tamaño, centro, orientación); el frente se detecta por las ruedas
+// (nodos wheel-front-* / wheel-back-*). Con ?flip se invierte el frente.
+// Las ruedas se reparentan a pivotes alineados al mundo (dirección y giro funcionan igual que en el carro procedural).
 export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) {
   try {
     const head = await fetch(url, { method: 'HEAD' });
@@ -304,27 +306,54 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) 
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
     const gltf = await new GLTFLoader().loadAsync(url);
     const model = gltf.scene;
-    let box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3());
     const holder = new THREE.Group(); holder.add(model);
-    if (size.x > size.z) holder.rotation.y = Math.PI / 2;                 // largo sobre el eje z
+    let box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3());
+    if (size.x > size.z) holder.rotation.y = Math.PI / 2;                     // largo sobre el eje z
+    holder.updateMatrixWorld(true);
+    const fl = model.getObjectByName('wheel-front-left'), bl = model.getObjectByName('wheel-back-left');
+    if (fl && bl) {
+      const pa = fl.getWorldPosition(new THREE.Vector3()), pb = bl.getWorldPosition(new THREE.Vector3());
+      if (pa.z < pb.z) holder.rotation.y += Math.PI;                           // el frente debe quedar en +z
+    }
     if (flip) holder.rotation.y += Math.PI;
     holder.updateMatrixWorld(true);
     box = new THREE.Box3().setFromObject(holder); size = box.getSize(new THREE.Vector3());
-    const k = 4.2 / Math.max(size.z, 0.001);
-    holder.scale.setScalar(k); holder.updateMatrixWorld(true);
-    box = new THREE.Box3().setFromObject(holder); const c = box.getCenter(new THREE.Vector3());
-    holder.position.set(-c.x, -box.min.y, -c.z);
+    holder.scale.setScalar(4.2 / Math.max(size.z, 0.001)); holder.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(holder);
+    const c = box.getCenter(new THREE.Vector3());
+    holder.position.set(-c.x, -box.min.y, -c.z); holder.updateMatrixWorld(true);
+
     model.traverse((o) => {
       if (!o.isMesh) return;
       o.castShadow = true; o.receiveShadow = true;
       const ms = Array.isArray(o.material) ? o.material : [o.material];
-      ms.forEach((m) => { if (m && envMap && 'envMapIntensity' in m) { m.envMap = envMap; m.envMapIntensity = 1.0; } });
+      ms.forEach((m) => {
+        if (!m) return;
+        if (envMap && 'envMapIntensity' in m) { m.envMap = envMap; m.envMapIntensity = 0.9; }
+        if (m.transparent) { m.depthWrite = false; o.renderOrder = 2; }      // vidrios: sin artefactos de transparencia
+      });
     });
-    // oculta el carro procedural y usa el modelo real como carrocería
+
+    // oculta el carro procedural
     built.shell.clear();
-    built.wheels.forEach((w) => { w.piv.visible = false; });
     built.group.children.forEach((ch) => { if (ch !== built.shell) ch.visible = false; });
+
+    // ruedas: pivote (dirección, eje Y del mundo) -> giro (eje X del mundo) -> nodo con su orientación original
+    const real = [];
+    ['wheel-front-left', 'wheel-front-right', 'wheel-back-left', 'wheel-back-right'].forEach((n) => {
+      const node = model.getObjectByName(n); if (!node) return;
+      node.updateWorldMatrix(true, false);
+      const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
+      node.matrixWorld.decompose(pos, quat, scl);
+      node.removeFromParent();
+      node.position.set(0, 0, 0); node.quaternion.copy(quat); node.scale.copy(scl);
+      const spin = new THREE.Group(); spin.add(node);
+      const piv = new THREE.Group(); piv.position.copy(pos); piv.rotation.order = 'YXZ'; piv.add(spin);
+      built.group.add(piv);
+      real.push({ piv, w: spin, front: n.includes('front') });
+    });
     built.shell.add(holder);
+    built.wheels.length = 0; real.forEach((r) => built.wheels.push(r));
     built.realModel = true;
     return true;
   } catch (e) { console.warn('No se pudo cargar el modelo real', e); return false; }
