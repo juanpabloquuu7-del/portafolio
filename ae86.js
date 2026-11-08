@@ -72,33 +72,106 @@ export function buildAE86(THREE, opts = {}) {
   };
 
   // ---------- Carrocería ----------
-  const profile = [
-    [-2.06, 0.36], [2.06, 0.36], [2.09, 0.52], [2.08, 0.68],
-    [1.92, 0.755], [0.90, 0.845], [0.40, 1.265], [-0.82, 1.285],
-    [-1.72, 0.96], [-2.04, 0.895], [-2.08, 0.60],
-  ];
-  part(taper(extrudeSide(profile, 1.46, 0.07, hq ? 3 : 1)), white, 0, 0, 0);
-  part(new THREE.BoxGeometry(1.5, 0.12, 3.9), plastic, 0, 0.33, 0);          // falda inferior
-
-  // Ventanas laterales y marcos
-  const sideGlass = taper(extrudeSide([[0.80, 0.93], [0.43, 1.225], [-0.80, 1.245], [-1.50, 0.97]], 1.64, 0));
-  part(sideGlass, glass, 0, 0, 0);
-  [-1, 1].forEach((s) => {
-    part(new THREE.BoxGeometry(0.02, 0.028, 1.72), chrome, s * 0.822, 0.935, -0.34);      // moldura cromada bajo la ventana
-    part(new THREE.BoxGeometry(0.014, 0.3, 0.03), black, s * 0.8, 1.07, 0.05);            // montante central
-  });
-  // Parabrisas y luneta con marco de goma
-  const slab = (w, h, cz, cy, nz, ny, m, grow = 0.085) => {
-    const o = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+  // Vidrio transparente (se ve el interior) en alta calidad; opaco en la versión ligera
+  const glassClear = mat(THREE.MeshPhysicalMaterial, { color: 0x0b161b, roughness: 0.03, metalness: 0, transparent: true, opacity: 0.2, depthWrite: false, clearcoat: 1, clearcoatRoughness: 0 }, 2.4);
+  const slab = (w, h, cz, cy, nz, ny, m, grow = 0.085, geo = null) => {
+    const o = new THREE.Mesh(geo || new THREE.PlaneGeometry(w, h), m);
     const n = new THREE.Vector3(0, ny, nz).normalize();
     o.position.set(0, cy + n.y * grow, cz + n.z * grow);
     o.lookAt(o.position.clone().add(n));
     shell.add(o); return o;
   };
-  slab(1.26, 0.54, 0.62, 1.07, 0.40, 0.49, glass);
-  slab(1.30, 0.58, 0.62, 1.07, 0.40, 0.49, rubberTrim, 0.082);
-  slab(1.26, 0.78, -1.27, 1.12, -0.34, 0.85, glass);
-  slab(1.30, 0.82, -1.27, 1.12, -0.34, 0.85, rubberTrim, 0.082);
+  // Marco de goma con hueco (deja ver el interior)
+  const frameGeo = (w, h, t) => {
+    const sh = new THREE.Shape(); sh.moveTo(-w / 2, -h / 2); sh.lineTo(w / 2, -h / 2); sh.lineTo(w / 2, h / 2); sh.lineTo(-w / 2, h / 2); sh.closePath();
+    const hole = new THREE.Path(); hole.moveTo(-w / 2 + t, -h / 2 + t); hole.lineTo(-w / 2 + t, h / 2 - t); hole.lineTo(w / 2 - t, h / 2 - t); hole.lineTo(w / 2 - t, -h / 2 + t); hole.closePath();
+    sh.holes.push(hole); return new THREE.ShapeGeometry(sh);
+  };
+  const SIDE_GLASS = [[0.80, 0.93], [0.43, 1.225], [-0.78, 1.245], [-0.78, 0.96]];
+
+  if (!hq) {
+    // Versión ligera: carrocería sólida y vidrio opaco
+    const profile = [
+      [-2.06, 0.36], [2.06, 0.36], [2.09, 0.52], [2.08, 0.68],
+      [1.92, 0.755], [0.90, 0.845], [0.40, 1.265], [-0.82, 1.285],
+      [-1.72, 0.96], [-2.04, 0.895], [-2.08, 0.60],
+    ];
+    part(taper(extrudeSide(profile, 1.46, 0.07, 1)), white, 0, 0, 0);
+    part(new THREE.BoxGeometry(1.5, 0.12, 3.9), plastic, 0, 0.33, 0);
+    part(taper(extrudeSide([[0.80, 0.93], [0.43, 1.225], [-0.80, 1.245], [-1.50, 0.97]], 1.64, 0)), glass, 0, 0, 0);
+    slab(1.26, 0.54, 0.62, 1.07, 0.40, 0.49, glass);
+    slab(1.26, 0.78, -1.27, 1.12, -0.34, 0.85, glass);
+  } else {
+    // ---- Alta calidad: carrocería por piezas con cabina hueca ----
+    part(new THREE.BoxGeometry(1.5, 0.12, 3.9), plastic, 0, 0.33, 0);                                  // falda inferior
+    part(taper(extrudeSide([[0.82, 0.36], [2.06, 0.36], [2.09, 0.52], [2.08, 0.68], [1.92, 0.755], [0.90, 0.845], [0.82, 0.9]], 1.46, 0.07, 3)), white, 0, 0, 0);   // bloque del motor
+    part(taper(extrudeSide([[-1.5, 0.36], [-2.06, 0.36], [-2.08, 0.60], [-2.04, 0.895], [-1.72, 0.96], [-1.5, 0.96]], 1.46, 0.07, 3)), white, 0, 0, 0);            // bloque trasero
+    part(taper(extrudeSide([[0.44, 1.268], [-0.86, 1.29], [-0.86, 1.25], [0.47, 1.228]], 1.44, 0.012, 0)), white, 0, 0, 0);                                        // techo
+    [-1, 1].forEach((sd) => {
+      const door = extrudeSide([[0.86, 0.36], [-1.52, 0.36], [-1.52, 0.955], [-0.4, 0.96], [0.8, 0.935], [0.86, 0.9]], 0.07, 0.012, 0); door.translate(sd * 0.765, 0, 0); taper(door);
+      part(door, white, 0, 0, 0);                                                                                                                                       // puerta
+      const quarter = extrudeSide([[-0.78, 1.29], [-1.72, 0.965], [-1.5, 0.955], [-0.78, 0.955]], 0.1, 0.01, 0); quarter.translate(sd * 0.71, 0, 0); taper(quarter);
+      part(quarter, white, 0, 0, 0);                                                                                                                                    // panel trasero (pilar C)
+      const sg = extrudeSide(SIDE_GLASS, 0.012, 0, 0); sg.translate(sd * 0.8, 0, 0); taper(sg);
+      part(sg, glassClear, 0, 0, 0);                                                                                                                                    // ventana lateral
+      const ap = part(new THREE.BoxGeometry(0.05, 0.05, 0.58), white, sd * 0.69, 1.075, 0.63); ap.rotation.x = 0.657;                                                    // pilar A
+      part(new THREE.BoxGeometry(0.02, 0.4, 1.3), plastic, sd * 0.725, 0.69, 0.1);                                                                                      // tarjeta de puerta
+      part(new THREE.BoxGeometry(0.06, 0.05, 0.4), plastic, sd * 0.7, 0.86, 0.1);                                                                                       // apoyabrazos
+    });
+    slab(1.26, 0.54, 0.62, 1.07, 0.40, 0.49, glassClear);
+    slab(0, 0, 0.62, 1.07, 0.40, 0.49, rubberTrim, 0.082, frameGeo(1.32, 0.6, 0.045));
+    slab(1.26, 0.78, -1.27, 1.12, -0.34, 0.85, glassClear);
+    slab(0, 0, -1.27, 1.12, -0.34, 0.85, rubberTrim, 0.082, frameGeo(1.32, 0.84, 0.045));
+
+    // ---- Interior ----
+    const fabric = mat(THREE.MeshStandardMaterial, { color: 0x1b1d1f, roughness: 0.95, metalness: 0 }, 0.15);
+    const fabric2 = mat(THREE.MeshStandardMaterial, { color: 0x2a2d30, roughness: 0.95, metalness: 0 }, 0.15);
+    const leather = mat(THREE.MeshStandardMaterial, { color: 0x0a0a0a, roughness: 0.7, metalness: 0 }, 0.25);
+    const rbox = (w, h, d, r = 0.045) => {
+      const sh = new THREE.Shape();
+      sh.moveTo(-w / 2 + r, -h / 2); sh.lineTo(w / 2 - r, -h / 2); sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+      sh.lineTo(w / 2, h / 2 - r); sh.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2); sh.lineTo(-w / 2 + r, h / 2); sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+      sh.lineTo(-w / 2, -h / 2 + r); sh.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+      const g = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 3, curveSegments: 6 });
+      g.translate(0, 0, -d / 2); return g;
+    };
+    part(new THREE.BoxGeometry(1.44, 0.04, 2.7), fabric2, 0, 0.43, -0.1);                              // piso
+    part(new THREE.BoxGeometry(1.3, 0.02, 1.25), fabric2, 0, 1.215, -0.2);                             // techo interior
+    part(new THREE.BoxGeometry(1.32, 0.05, 0.5), fabric2, 0, 0.74, -1.43);                             // piso del portaequipajes
+    // tablero, consola y volante (conductor a la izquierda, como en Colombia)
+    part(rbox(1.34, 0.13, 0.4, 0.04), plastic, 0, 0.9, 0.62);
+    part(rbox(0.5, 0.12, 0.26, 0.04), plastic, 0.38, 0.99, 0.58);
+    const gc = document.createElement('canvas'); gc.width = 256; gc.height = 128; const gg = gc.getContext('2d');
+    gg.fillStyle = '#050505'; gg.fillRect(0, 0, 256, 128);
+    [[72, 64], [184, 64]].forEach(([cx, cy], i) => {
+      gg.strokeStyle = '#e9e9e9'; gg.lineWidth = 4; gg.beginPath(); gg.arc(cx, cy, 48, Math.PI * 0.75, Math.PI * 2.25); gg.stroke();
+      gg.strokeStyle = '#ff5a1f'; gg.lineWidth = 5; gg.beginPath(); gg.moveTo(cx, cy); gg.lineTo(cx + Math.cos(2.5 + i * 0.7) * 40, cy + Math.sin(2.5 + i * 0.7) * 40); gg.stroke();
+    });
+    const gt = new THREE.CanvasTexture(gc); gt.colorSpace = THREE.SRGBColorSpace;
+    const gauges = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.2), new THREE.MeshBasicMaterial({ map: gt, toneMapped: false }));
+    gauges.position.set(0.38, 0.99, 0.449); gauges.rotation.set(-0.12, Math.PI, 0); shell.add(gauges);
+    part(rbox(0.22, 0.2, 0.78, 0.05), plastic, 0, 0.58, 0.12);                                          // consola central
+    part(new THREE.CylinderGeometry(0.012, 0.012, 0.2, 10), chrome, 0, 0.78, 0.2);                      // palanca
+    part(new THREE.SphereGeometry(0.03, 16, 12), leather, 0, 0.89, 0.2);
+    part(new THREE.TorusGeometry(0.17, 0.016, 14, 48), leather, 0.38, 0.99, 0.32).rotation.x = 0.35;     // volante
+    part(new THREE.BoxGeometry(0.3, 0.02, 0.02), leather, 0.38, 0.99, 0.32).rotation.x = 0.35;
+    part(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 12).rotateX(Math.PI / 2), plastic, 0.38, 0.95, 0.46);
+    part(new THREE.BoxGeometry(0.2, 0.05, 0.02), plastic, 0, 1.17, 0.5);                                // espejo retrovisor
+    // asientos delanteros (cuna, respaldo y apoyacabezas) y banca trasera
+    [-0.38, 0.38].forEach((x) => {
+      part(rbox(0.46, 0.12, 0.52), fabric, x, 0.56, -0.05);
+      part(rbox(0.1, 0.1, 0.5), fabric2, x - Math.sign(x) * 0.2, 0.62, -0.05);                          // lateral del asiento
+      const back = part(rbox(0.46, 0.6, 0.11), fabric, x, 0.93, -0.38); back.rotation.x = -0.18;
+      const head = part(rbox(0.22, 0.2, 0.09, 0.06), fabric, x, 1.27, -0.45); head.rotation.x = -0.18;
+    });
+    part(rbox(1.3, 0.12, 0.42), fabric, 0, 0.58, -1.0);
+    const rb = part(rbox(1.3, 0.5, 0.1), fabric, 0, 0.88, -1.25); rb.rotation.x = -0.2;
+    // pedales y alfombra
+    part(new THREE.BoxGeometry(0.06, 0.02, 0.1), black, 0.3, 0.52, 0.52);
+    part(new THREE.BoxGeometry(0.06, 0.02, 0.1), black, 0.4, 0.52, 0.52);
+    part(new THREE.BoxGeometry(0.06, 0.02, 0.1), black, 0.5, 0.52, 0.52);
+  }
+  [-1, 1].forEach((sd) => part(new THREE.BoxGeometry(0.02, 0.028, 1.72), chrome, sd * 0.822, 0.935, -0.34));   // moldura cromada bajo la ventana
   part(new THREE.BoxGeometry(0.62, 0.012, 0.02), black, -0.1, 0.95, 0.93);   // limpiaparabrisas
   part(new THREE.BoxGeometry(0.4, 0.01, 0.02), black, 0.5, 0.945, 0.9);
 
