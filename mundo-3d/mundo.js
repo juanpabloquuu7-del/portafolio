@@ -153,6 +153,7 @@ const sky = (() => {
   scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xbfffe6, size: 0.9, sizeAttenuation: false, transparent: true, opacity: 0.7, fog: false })));
 }
 
+const bridgeCars = [];
 /* ---------- Bucaramanga: montañas, ciudad, catedral y parques ---------- */
 {
   const flat = (c, extra) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, flatShading: true, ...(extra || {}) });
@@ -215,6 +216,53 @@ const sky = (() => {
   }
   palms.count = np; crowns.count = nc;
   [trunks, crowns, palms].forEach((m) => { m.castShadow = true; scene.add(m); });
+  // Puente de la Novena (estilizado): tablero de concreto elevado sobre pilas, barandas, farolas y tráfico
+  {
+    const bg = new THREE.Group();
+    const concrete = flat(0xb7b5ac), dark = flat(0x2b3033), rail = flat(0xd8d6cc);
+    const L = 84, W = 11, Y = 10;
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(L, 1.1, W), concrete); deck.position.y = Y; deck.castShadow = deck.receiveShadow = true; bg.add(deck);
+    const road = new THREE.Mesh(new THREE.BoxGeometry(L, 0.06, W - 3), new THREE.MeshStandardMaterial({ color: 0x2f3537, roughness: 0.9 })); road.position.y = Y + 0.6; bg.add(road);
+    const lane = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.18), new THREE.MeshBasicMaterial({ color: 0xe9b93a })); lane.rotation.x = -Math.PI / 2; lane.position.y = Y + 0.65; bg.add(lane);
+    [-1, 1].forEach((sd) => {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(L, 0.14, 0.14), rail); bar.position.set(0, Y + 1.75, sd * (W / 2 - 0.2)); bg.add(bar);
+      const base = new THREE.Mesh(new THREE.BoxGeometry(L, 0.9, 0.25), concrete); base.position.set(0, Y + 1.0, sd * (W / 2 - 0.2)); bg.add(base);
+      for (let x = -L / 2 + 3; x <= L / 2 - 3; x += 7) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.2, 6), dark); post.position.set(x, Y + 3.3, sd * (W / 2 - 0.2)); bg.add(post);
+        const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.3), new THREE.MeshBasicMaterial({ color: 0xffe2a8 })); lamp.position.set(x, Y + 5.9, sd * (W / 2 - 0.6)); bg.add(lamp);
+      }
+    });
+    // pilas en forma de V invertida
+    for (let x = -L / 2 + 8; x <= L / 2 - 8; x += 17) {
+      const pier = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.9, Y - 0.4, 8), concrete); pier.position.set(x, (Y - 0.4) / 2, 0); pier.castShadow = true; bg.add(pier);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, W - 1.5), concrete); cap.position.set(x, Y - 0.9, 0); bg.add(cap);
+    }
+    // tráfico: carritos que cruzan el puente
+    const carMat = [0xc0392b, 0x2f6fb5, 0xe9e4d8, 0xd9a21b, 0x3a7d44];
+    for (let i = 0; i < 8; i++) {
+      const c = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.8, 1.5), new THREE.MeshStandardMaterial({ color: carMat[i % carMat.length], roughness: 0.4, metalness: 0.3 })); body.position.y = 0.7; c.add(body);
+      const cab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.6, 1.3), new THREE.MeshStandardMaterial({ color: 0x10181c, roughness: 0.2 })); cab.position.set(-0.2, 1.3, 0); c.add(cab);
+      const tl = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, 1.1), new THREE.MeshBasicMaterial({ color: 0xff3030 })); tl.position.set(-1.62, 0.8, 0); c.add(tl);
+      const dir = i % 2 ? 1 : -1;
+      c.rotation.y = dir > 0 ? 0 : Math.PI;
+      bridgeCars.push({ c, dir, x: -L / 2 + (i / 8) * L, lane: dir * 1.9, speed: 6 + (i % 4) * 1.4 });
+      c.position.set(0, Y + 0.65, dir * 1.9); bg.add(c);
+    }
+    // letrero
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 160; const g2 = cv.getContext('2d');
+    g2.fillStyle = '#0b1c17'; g2.fillRect(0, 0, 1024, 160); g2.strokeStyle = '#e9b93a'; g2.lineWidth = 8; g2.strokeRect(6, 6, 1012, 148);
+    g2.fillStyle = '#f2f2ee'; g2.font = '700 86px system-ui, Segoe UI, sans-serif'; g2.textAlign = 'center'; g2.fillText('Puente de la Novena', 512, 108);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(14, 2.2), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, side: THREE.DoubleSide })); sign.position.set(0, Y + 5.2, 0); bg.add(sign);
+    [-6.6, 6.6].forEach((x) => { const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4.4, 8), dark); pl.position.set(x, Y + 3.2, 0); bg.add(pl); });
+    // ubicación: sobre el parque, al costado izquierdo del inicio, mirando al centro de la plaza
+    const ang = Math.PI * 0.95, R = 94;
+    bg.position.set(Math.cos(ang) * R, 0, Math.sin(ang) * R); bg.rotation.y = -ang + Math.PI / 2;
+    scene.add(bg);
+    bg.userData.len = L;
+    window.__bridge = bg;
+  }
   // Cartel de bienvenida frente al inicio
   const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
   g.fillStyle = '#0b1c17'; g.fillRect(0, 0, 1024, 256); g.strokeStyle = '#22d6a3'; g.lineWidth = 8; g.strokeRect(6, 6, 1012, 244);
@@ -379,6 +427,8 @@ const touch = { x: 0, y: 0, boost: false, drift: false };
 let hintHidden = false;
 const hideHint = () => { if (hintHidden) return; hintHidden = true; setTimeout(() => $('hint').classList.add('hide'), 2500); };
 
+// Atajo: /mundo-3d/#puente deja el carro frente al Puente de la Novena
+if (location.hash === '#puente') Object.assign(START, { x: -50, z: 15, h: -Math.PI / 2 });
 function resetCar() { Object.assign(S, START, { vx: 0, vz: 0, steer: 0 }); }
 
 /* ---------- Panel de zona ---------- */
@@ -525,6 +575,7 @@ function frame() {
 
   sun.position.set(S.x - 40, 34, S.z - 30); sun.target.position.set(S.x, 0, S.z);
   sky.position.copy(camera.position);
+  bridgeCars.forEach((b) => { b.x += b.dir * b.speed * dt; if (b.x > 42) b.x = -42; if (b.x < -42) b.x = 42; b.c.position.x = b.x; });
 
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
