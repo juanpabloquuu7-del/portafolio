@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildAE86, tryLoadAE86Model } from '../ae86.js';
+import { buildAE86, tryLoadAE86Model, toonify, makeToonGradient } from '../ae86.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -65,26 +65,29 @@ document.querySelectorAll('.overlay').forEach((o) => o.addEventListener('pointer
 /* ---------- Render ---------- */
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas: $('world'), antialias: !LOW, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas: $('world'), antialias: true, powerPreference: 'high-performance' });
 } catch (e) {
   $('loading').classList.add('done');
   $('fallback').classList.add('show');
   throw e;
 }
 // Escritorio: supermuestreo (mínimo 1.5x) para que la imagen salga nítida; celular: ligero
-const PR_MAX = LOW ? Math.min(devicePixelRatio, 1.25) : Math.min(Math.max(devicePixelRatio, 1.5), 2.25);
+// Estilo caricatura ligero por defecto (poca RAM/GPU). `?hq` activa el modo realista con postprocesado.
+const PR_MAX = Math.min(devicePixelRatio, LOW ? 1.0 : 1.25);
 let pr = PR_MAX;
 renderer.setPixelRatio(pr);
 let composerRef = null;
 const applyPR = () => { renderer.setPixelRatio(pr); if (composerRef) composerRef.setPixelRatio(pr); };
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = LOW ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
-const FX = !LOW && !location.search.includes('fx=0');
+renderer.shadowMap.type = THREE.PCFShadowMap;
+const HQ = !LOW && location.search.includes('hq');
+const TOON = !HQ;
+const FX = HQ;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMapping = HQ ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
 renderer.toneMappingExposure = 1.05;
 
-const BG = 0x2c5a60; // bruma azul-verdosa del atardecer
+const BG = TOON ? 0xf6b27a : 0x2c5a60; // bruma azul-verdosa del atardecer
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
 scene.fog = new THREE.Fog(BG, LOW ? 60 : 90, LOW ? 380 : 620);
@@ -103,11 +106,11 @@ const resize = () => {
 addEventListener('resize', resize); resize();
 
 /* Luces */
-scene.add(new THREE.HemisphereLight(0x9fd4d8, 0x46535a, 1.1));
-const sun = new THREE.DirectionalLight(0xffc592, 3.0);
+scene.add(TOON ? new THREE.HemisphereLight(0xffe6c4, 0x8e7cc0, 1.6) : new THREE.HemisphereLight(0x9fd4d8, 0x46535a, 1.1));
+const sun = new THREE.DirectionalLight(TOON ? 0xfff1d6 : 0xffc592, TOON ? 2.4 : 3.0);
 sun.position.set(-40, 34, -30);
 sun.castShadow = true;
-sun.shadow.mapSize.set(LOW ? 1024 : 4096, LOW ? 1024 : 4096);
+sun.shadow.mapSize.set(HQ ? 4096 : 1024, HQ ? 4096 : 1024);
 Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 1, far: 160 });
 sun.shadow.normalBias = 0.02;
 sun.shadow.bias = -0.0004;
@@ -124,8 +127,8 @@ const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 
     for (let i = 0; i < w * 14; i++) { const v = Math.floor(rand() * spread); g.fillStyle = `rgba(${v},${v},${v},0.09)`; g.fillRect(rand() * w, rand() * w, 1.6, 1.6); }
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = AN; return t;
   };
-  const asphalt = noise(256, '#3d4548', 255); asphalt.repeat.set(26, 26);
-  const grassT = noise(256, '#2f5a36', 255); grassT.repeat.set(30, 30);
+  const asphalt = noise(256, TOON ? '#4d5666' : '#3d4548', 255); asphalt.repeat.set(26, 26);
+  const grassT = noise(256, TOON ? '#58bb5c' : '#2f5a36', 255); grassT.repeat.set(30, 30);
   const mk = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.rotation.x = -Math.PI / 2; m.position.y = y; m.receiveShadow = true; scene.add(m); return m; };
   mk(new THREE.CircleGeometry(WORLD_R + 330, LOW ? 48 : 96), new THREE.MeshStandardMaterial({ map: grassT, roughness: 1 }), -0.02);
   mk(new THREE.RingGeometry(WORLD_R, WORLD_R + 7, 128), new THREE.MeshStandardMaterial({ color: 0x8a8d86, roughness: 0.95 }), 0.02);
@@ -148,8 +151,13 @@ const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 
 const sky = (() => {
   const c = document.createElement('canvas'); c.width = 8; c.height = 512;
   const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 512);
-  gr.addColorStop(0.00, '#050d18'); gr.addColorStop(0.30, '#0c2535'); gr.addColorStop(0.48, '#1d4b5a');
-  gr.addColorStop(0.54, '#3d7076'); gr.addColorStop(0.58, '#e6a768'); gr.addColorStop(0.60, '#2c5a60'); gr.addColorStop(1.00, '#2c5a60');
+  if (TOON) {
+    gr.addColorStop(0.00, '#2d2a86'); gr.addColorStop(0.30, '#6a3fa6'); gr.addColorStop(0.46, '#e4608e'); gr.addColorStop(0.53, '#ff9a5a');
+    gr.addColorStop(0.58, '#ffd37a'); gr.addColorStop(0.60, '#f6b27a'); gr.addColorStop(1.00, '#f6b27a');
+  } else {
+    gr.addColorStop(0.00, '#050d18'); gr.addColorStop(0.30, '#0c2535'); gr.addColorStop(0.48, '#1d4b5a');
+    gr.addColorStop(0.54, '#3d7076'); gr.addColorStop(0.58, '#e6a768'); gr.addColorStop(0.60, '#2c5a60'); gr.addColorStop(1.00, '#2c5a60');
+  }
   g.fillStyle = gr; g.fillRect(0, 0, 8, 512);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   const m = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 24), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, depthWrite: false }));
@@ -175,16 +183,16 @@ let cityTraffic = null;
   const MN = LOW ? 18 : 34;
   for (let i = 0; i < MN; i++) {
     const a = (i / MN) * Math.PI * 2 + rand() * 0.1, r = 540 + rand() * 110, h = 100 + rand() * 160, rad = 110 + rand() * 90;
-    const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 7 + (i % 3)), flat(i % 2 ? 0x1c4a45 : 0x22544c));
+    const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 7 + (i % 3)), flat(TOON ? (i % 2 ? 0x6a5cb8 : 0x7f70cc) : (i % 2 ? 0x1c4a45 : 0x22544c)));
     m.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r); m.rotation.y = rand() * 6; scene.add(m);
   }
   // Cañón del Chicamocha: paredes rojizas escalonadas hacia un lado
   const canyonA = Math.PI * 0.78;
   for (let i = 0; i < 14; i++) {
     const a = canyonA + (i - 7) * 0.075, r = 395 + (i % 3) * 18, h = 70 + rand() * 70;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(64, h, 38), flat(i % 2 ? 0x7a5039 : 0x8c5d3f));
+    const m = new THREE.Mesh(new THREE.BoxGeometry(64, h, 38), flat(TOON ? (i % 2 ? 0xd9824a : 0xeb9a5c) : (i % 2 ? 0x7a5039 : 0x8c5d3f)));
     m.position.set(Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r); m.lookAt(0, h / 2, 0); scene.add(m);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(66, 6, 40), flat(0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(66, 6, 40), flat(TOON ? 0x7ad05a : 0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
   }
   // Suelo de la ciudad: manzanas y calles
   {
@@ -223,7 +231,7 @@ let cityTraffic = null;
       .replace('#include <map_fragment>', 'vec4 wt = texture2D(map, vWin / vec2(6.0, 9.0)); wt = mix(wt, vec4(0.32, 0.32, 0.32, 1.0), vRoof); diffuseColor *= wt;')
       .replace('#include <emissivemap_fragment>', 'vec4 em = texture2D(emissiveMap, vWin / vec2(6.0, 9.0)); totalEmissiveRadiance *= mix(em.rgb, vec3(0.0), vRoof);');
   };
-  const tones = [0xb9b2a4, 0xa7a79f, 0xc7b79a, 0x9aa5a6, 0xb3a28a, 0x8f9a94, 0xc2b8a8, 0x7f8b8f];
+  const tones = TOON ? [0xff9aa2, 0xffd166, 0x9be7c4, 0x8ec5ff, 0xc9a7ff, 0xffb88c, 0xf4f1de, 0x7fd1ae] : [0xb9b2a4, 0xa7a79f, 0xc7b79a, 0x9aa5a6, 0xb3a28a, 0x8f9a94, 0xc2b8a8, 0x7f8b8f];
   const NB = LOW ? 120 : 340;
   const bm = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), bMat, NB);
   {
@@ -277,8 +285,8 @@ let cityTraffic = null;
   // Árboles (ceibas y palmas) en el parque que rodea la plaza
   const N = LOW ? 60 : 160;
   const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.35, 0.55, 5, 6), flat(0x5a3d29), N);
-  const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.4, 0), flat(0x2f7a45), N);
-  const palms = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 4.5, 7), flat(0x4d9a52), N);
+  const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(3.4, 0), flat(TOON ? 0x4fcf6e : 0x2f7a45), N);
+  const palms = new THREE.InstancedMesh(new THREE.ConeGeometry(2.6, 4.5, 7), flat(TOON ? 0x7fe07a : 0x4d9a52), N);
   const dm = new THREE.Object3D(); let np = 0, nc = 0;
   for (let i = 0; i < N; i++) {
     const a = rand() * Math.PI * 2, r = WORLD_R + 9 + rand() * 38, sc = 0.8 + rand() * 0.9, palm = rand() > 0.6;
@@ -420,7 +428,7 @@ ZONES.forEach((z) => {
   sign.position.set(0, 8.8, 0);
   sign.scale.setScalar(1.4); sign.position.y = 9.6;
   g.add(sign);
-  if (!LOW) { const glow = new THREE.PointLight(col, 18, 16, 1.6); glow.position.set(0, 3, 0); g.add(glow); }
+  if (HQ) { const glow = new THREE.PointLight(col, 18, 16, 1.6); glow.position.set(0, 3, 0); g.add(glow); }
   scene.add(g);
   g.lookAt(0, 0, 0); // el cartel (cara +z) mira al centro del mundo
   statics.push({ x: z.pos[0], z: z.pos[1], r: 2.2 });
@@ -471,7 +479,7 @@ for (let i = 0; i < (LOW ? 8 : 14); i++) {
 }
 
 /* ---------- Carro: Toyota AE86 ---------- */
-const envMap = (() => {
+const envMap = !HQ ? null : (() => {
   const es = new THREE.Scene();
   es.add(new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: sky.material.map, side: THREE.BackSide })));
   const sunDot = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(16, 10, 5) }));
@@ -483,12 +491,14 @@ const envMap = (() => {
   const floor = new THREE.Mesh(new THREE.CircleGeometry(80, 32), new THREE.MeshBasicMaterial({ color: 0x20262a })); floor.rotation.x = -Math.PI / 2; floor.position.y = -4; es.add(floor);
   return new THREE.PMREMGenerator(renderer).fromScene(es, 0.012).texture;
 })();
-if (asphaltMat) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
+if (asphaltMat && envMap) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
 const ae86 = buildAE86(THREE, { envMap, detail: !LOW });
-if (!LOW && !location.search.includes('procedural')) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'));
+const toonGrad = makeToonGradient(THREE);
+if (TOON) toonify(THREE, ae86.group, toonGrad);
+if (!LOW && !location.search.includes('procedural')) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null);
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
-beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (!LOW) car.add(beam, beam.target);
+beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (HQ) car.add(beam, beam.target);
 scene.add(car);
 
 /* Estado del carro */
@@ -669,7 +679,7 @@ function adaptResolution(rawDt) {
   ftAvg += (rawDt * 1000 - ftAvg) * 0.08; ftCount++;
   if (ftCount < 90 || ftCount % 45) return;
   // En escritorio solo se baja la resolución si de verdad va mal (<20 fps) y nunca bajo 1x
-  const slow = LOW ? 26 : 50, floor = LOW ? 0.6 : 1.0, fast = LOW ? 15 : 22;
+  const slow = LOW ? 26 : 34, floor = 0.6, fast = LOW ? 15 : 18;
   if (ftAvg > slow && pr > floor) { pr = Math.max(floor, pr - 0.15); applyPR(); }
   else if (ftAvg < fast && pr < PR_MAX) { pr = Math.min(PR_MAX, pr + 0.1); applyPR(); }
 }
@@ -700,6 +710,14 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
+if (TOON) {
+  // todos los materiales físicos pasan a toon (3 bandas) y los objetos "juguete" reciben contorno oscuro
+  toonify(THREE, scene, toonGrad);
+  const outlineMat = new THREE.MeshBasicMaterial({ color: 0x1d1636, side: THREE.BackSide });
+  const outline = (mesh, k = 1.07) => { const o = new THREE.Mesh(mesh.geometry, outlineMat); o.scale.setScalar(k); mesh.add(o); };
+  props.forEach((p) => outline(p.mesh, p.kind === 'cone' ? 1.12 : 1.07));
+  zoneObjs.forEach((zo) => { const list = []; zo.obj.traverse((o) => { if (o.isMesh) list.push(o); }); list.forEach((o) => outline(o, 1.06)); });
+}
 resetCar();
 if (FX) {
   try {

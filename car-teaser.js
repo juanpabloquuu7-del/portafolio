@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { buildAE86, tryLoadAE86Model } from './ae86.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { buildAE86, tryLoadAE86Model, toonify, makeToonGradient } from './ae86.js';
 
 // Carro del mundo 3D girando sobre una plataforma. Se carga solo al acercarse
 // a la sección y se pausa cuando no está visible.
@@ -27,10 +26,12 @@ if (view && canvas) {
     const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(4, 7, 5); scene.add(key);
     const rim = new THREE.PointLight(0x22d6a3, 40, 14); rim.position.set(-4, 2, -3); scene.add(rim);
 
-    const envMap = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+    const envMap = null;
+    const toonGrad = makeToonGradient(THREE);
     const built = buildAE86(THREE, { envMap, detail: !lowEnd });
     const car = built.group;
-    if (!lowEnd) tryLoadAE86Model(THREE, built, './models/ae86.glb', envMap);
+    toonify(THREE, car, toonGrad);
+    if (!lowEnd) tryLoadAE86Model(THREE, built, './models/ae86.glb', envMap, false, toonGrad);
     scene.add(car);
 
     const disc = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.2, 64), new THREE.MeshStandardMaterial({ color: 0x0f2a22, roughness: 0.5, metalness: 0.3 }));

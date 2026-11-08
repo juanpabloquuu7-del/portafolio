@@ -299,7 +299,7 @@ export function buildAE86(THREE, opts = {}) {
 // Se normaliza (tamaño, centro, orientación); el frente se detecta por las ruedas
 // (nodos wheel-front-* / wheel-back-*). Con ?flip se invierte el frente.
 // Las ruedas se reparentan a pivotes alineados al mundo (dirección y giro funcionan igual que en el carro procedural).
-export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) {
+export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false, toonGradient = null) {
   try {
     const head = await fetch(url, { method: 'HEAD' });
     if (!head.ok) return false;
@@ -334,6 +334,7 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) 
       });
     });
 
+    if (toonGradient) toonify(THREE, model, toonGradient);
     // oculta el carro procedural
     built.shell.clear();
     built.group.children.forEach((ch) => { if (ch !== built.shell) ch.visible = false; });
@@ -357,4 +358,34 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false) 
     built.realModel = true;
     return true;
   } catch (e) { console.warn('No se pudo cargar el modelo real', e); return false; }
+}
+
+
+// ---------- Estilo caricatura (sombreado por bandas, sin mapas de entorno: gasta mucho menos GPU y RAM) ----------
+export function makeToonGradient(THREE) {
+  const t = new THREE.DataTexture(new Uint8Array([85, 165, 255]), 3, 1, THREE.RedFormat);
+  t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true;
+  return t;
+}
+
+export function toonify(THREE, root, grad) {
+  const cache = new Map();
+  const conv = (m) => {
+    if (!m || m.isMeshToonMaterial || m.isMeshBasicMaterial) return m;
+    if (!(m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.isMeshLambertMaterial)) return m;
+    if (cache.has(m)) return cache.get(m);
+    const n = new THREE.MeshToonMaterial({
+      color: m.color.clone(), map: m.map || null, emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0),
+      emissiveIntensity: m.emissiveIntensity ?? 1, emissiveMap: m.emissiveMap || null,
+      transparent: m.transparent, opacity: m.opacity, side: m.side, gradientMap: grad,
+    });
+    n.name = m.name; n.depthWrite = m.depthWrite;
+    if (Object.prototype.hasOwnProperty.call(m, 'onBeforeCompile')) n.onBeforeCompile = m.onBeforeCompile;
+    cache.set(m, n); m.dispose();
+    return n;
+  };
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = Array.isArray(o.material) ? o.material.map(conv) : conv(o.material);
+  });
 }
