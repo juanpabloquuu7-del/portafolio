@@ -101,7 +101,8 @@ function initScene() {
         color: i % 2 === 0 ? JADE_BRIGHT : FOREST,
         wireframe: true,
         transparent: true,
-        opacity: 0.65,
+        // Más tenues: pasan por detrás de los títulos y competían con el texto
+        opacity: 0.4,
       })
     );
     const p = positionsShapes[i];

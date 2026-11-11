@@ -88,7 +88,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Intersection Observer — revela las tarjetas al hacer scroll
-const revealTargets = document.querySelectorAll('.project-card, .service-card, .stack-category, .value-card, .contact-card');
+const revealTargets = document.querySelectorAll('.service-card, .stack-category, .value-card, .contact-card');
 
 if (reducedMotion || !('IntersectionObserver' in window)) {
   revealTargets.forEach(el => el.classList.add('visible'));
@@ -119,6 +119,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
     if (anchor.classList.contains('skip-link')) {
       target.focus({ preventScroll: true });
+    }
+    // Fila de la lista de proyectos: destello breve para que se vea a cuál se llegó
+    if (target.matches('.world-teaser-list li')) {
+      target.classList.remove('is-flash');
+      void target.offsetWidth;
+      target.classList.add('is-flash');
+      target.addEventListener('animationend', () => target.classList.remove('is-flash'), { once: true });
     }
     history.replaceState(null, '', id);
   });
