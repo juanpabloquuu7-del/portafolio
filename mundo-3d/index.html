@@ -37,7 +37,7 @@
 
     #toast { position: fixed; top: 72px; left: 50%; transform: translate(-50%, -8px); z-index: 7; padding: 0.55rem 1rem; font-size: 0.9rem; font-weight: 600; color: var(--text); background: rgba(14, 40, 31, 0.78); border: 1px solid var(--border); border-radius: 12px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; max-width: calc(100vw - 24px); text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
-    .hint { position: fixed; left: max(50%, 700px); bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
+    .hint { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
     .hint kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; color: var(--accent-light); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; margin: 0 1px; }
     .hint.hide { opacity: 0; }
     @media (hover: none) { .hint { display: none; } }
@@ -83,6 +83,8 @@
     body.is-touch .nav { grid-template-columns: auto; grid-template-areas: "target" "map"; padding: 6px; gap: 6px; }
     body.is-touch #minimap { width: 112px; height: 112px; }
     body.is-touch .nav-target { max-width: 190px; min-height: 40px; }
+    @media (min-width: 1100px) { .hint { left: max(50%, 700px); } }
+    @media (max-width: 1099px) { .hint { bottom: auto; top: calc(max(12px, env(safe-area-inset-top)) + 56px); } }
     @media (max-width: 640px) { .hint { display: none; } }
 
     .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(6, 9, 7, 0.7); }

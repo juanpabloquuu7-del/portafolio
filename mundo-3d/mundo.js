@@ -673,7 +673,7 @@ const USE_GLB = !LOW && !location.search.includes('procedural');
 const ae86 = buildAE86(THREE, { envMap: HQ ? envMap : null, detail: !LOW && !USE_GLB });
 const toonGrad = makeToonGradient(THREE);
 if (TOON) toonify(THREE, ae86.group, toonGrad);
-if (USE_GLB) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null, { clearcoat: HQ, hood: /capo=negro/.test(location.search) ? 'black' : 'white' });
+if (USE_GLB) tryLoadAE86Model(THREE, ae86, '../models/ae86-v2.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null, { clearcoat: HQ, hood: /capo=negro/.test(location.search) ? 'black' : 'white' });
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 // carro ligero: solo las piezas grandes de la carrocería proyectan sombra (las ruedas ya tienen la sombra de contacto)
 if (!USE_GLB && TOON) {   // carro ligero: cada rueda queda en una sola malla con colores por vértice (12 draw calls menos)

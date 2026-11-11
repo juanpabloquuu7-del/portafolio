@@ -428,43 +428,13 @@ function carClass(THREE, m, mats) {
   }
 }
 
-// Faros escamoteables: dos cajas que suben desde las tapas del capó (hechas aquí, no vienen en el GLB)
-function addPopups(THREE, built, mats, body) {
-  // altura del capó sobre las tapas, leída de los vértices de la carrocería
-  const P = body.geometry.attributes.position; let yF = -1, yB = -1;
-  for (let i = 0; i < P.count; i++) {
-    const x = Math.abs(P.getX(i)), z = P.getZ(i), y = P.getY(i);
-    if (x < 0.27 || x > 0.62 || y > 1.0) continue;
-    if (z > 1.86 && z < 1.94 && y > yF) yF = y;
-    if (z > 1.58 && z < 1.66 && y > yB) yB = y;
-  }
-  if (yF < 0.5 || yB < 0.5) return null;
-  const RISE = 0.098, W = 0.34, D = 0.25, H = 0.2, zc = 1.815;
-  const pop = new THREE.Group(); pop.name = 'faros-escamoteables';
-  const white = new THREE.Color(PAINT), dark = new THREE.Color(0x0b0c0d);
-  [-1, 1].forEach((sx) => {
-    const geo = new THREE.BoxGeometry(W, H, D), p = geo.attributes.position, n = geo.attributes.normal, col = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) {
-      const top = p.getY(i) > 0, t = (p.getZ(i) + D / 2) / D;           // t = 0 atrás, 1 adelante
-      const c = n.getY(i) > 0.5 ? white : dark; col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
-      p.setY(i, top ? (yB + (yF - yB) * t) + RISE : Math.min(yF, yB) - 0.06);
-      if (top && t < 0.5) p.setZ(i, p.getZ(i) + 0.07);                    // la cara de atrás va inclinada
-    }
-    geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
-    const box = new THREE.Mesh(geo, mats.gloss); box.position.set(sx * 0.445, 0, zc); box.castShadow = true; pop.add(box);
-    const lens = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.06, RISE - 0.03), mats.lens);
-    lens.position.set(sx * 0.445, yF + RISE / 2 - 0.004, zc + D / 2 + 0.004); pop.add(lens);
-  });
-  built.shell.add(pop);
-  return { pop, rise: RISE + 0.012 };
-}
-
 // Animación de luces: faros que suben o bajan y luz de freno. Devuelve 0..1 (qué tan arriba están los faros).
 const smooth01 = (x, a, b) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
 export function animateAE86(built, dt, st = {}) {
   const f = built.fx; if (!f) return 0;
   f.k += ((st.lights ? 1 : 0) - f.k) * Math.min(1, dt * 4.5);
-  if (f.pop) { f.pop.position.y = (f.k - 1) * f.rise; f.pop.visible = f.k > 0.02; }
+  // faros escamoteables del modelo: cada cápsula gira sobre su bisagra trasera (eje X local del nodo)
+  if (f.pops) { const a = smooth01(f.k, 0, 1) * f.open; f.pops.forEach((p) => { p.piv.quaternion.copy(p.base).multiply(p.q.setFromAxisAngle(p.axis, a)); }); }
   const on = smooth01(f.k, 0.7, 0.98);
   f.mats.lens.color.setRGB(0.03 + on * 0.97, 0.03 + on * 0.93, 0.03 + on * 0.78);
   f.brake += ((st.brake ? 1 : 0) - f.brake) * Math.min(1, dt * 14);
@@ -532,6 +502,20 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false, 
     // carrocería: todo lo demás, unido por tipo de material
     const tmp = new THREE.Group(); tmp.position.y = -(opts.drop ?? 0.025); tmp.add(holder); tmp.updateMatrixWorld(true);
     const srcMats = new Set(); model.traverse((o) => { if (o.isMesh) srcMats.add(o.material); });
+    // faros escamoteables (nodos popup-left / popup-right): salen aparte, cada uno con su pivote en la bisagra
+    const popGroup = new THREE.Group(); popGroup.name = 'faros-escamoteables'; const pops = [];
+    ['popup-left', 'popup-right'].forEach((n) => {
+      const node = model.getObjectByName(n); if (!node) return;
+      node.updateWorldMatrix(true, false);
+      const pos = new THREE.Vector3(), quat = new THREE.Quaternion(), scl = new THREE.Vector3();
+      node.matrixWorld.decompose(pos, quat, scl);
+      node.removeFromParent(); node.position.set(0, 0, 0); node.quaternion.identity(); node.scale.copy(scl);
+      const piv = new THREE.Group(); piv.name = n; piv.position.copy(pos); piv.quaternion.copy(quat); piv.add(node); popGroup.add(piv);
+      // sin corte de dos tonos (la tapa es capó, siempre blanca) y con la lente en el material que se enciende
+      mergeMeshes(THREE, node, (o) => { if (o.material.name === 'lamp') return { key: 'lens', material: mats.lens }; const c = carClass(THREE, o.material, mats); return { key: c.key, material: c.material, color: c.color }; }, piv);
+      piv.remove(node); piv.children.forEach((m) => { m.castShadow = false; });
+      pops.push({ piv, base: quat.clone(), q: new THREE.Quaternion(), axis: new THREE.Vector3(1, 0, 0) });
+    });
     const parts = new THREE.Group(); parts.name = 'ae86-blender';
     const merged = mergeMeshes(THREE, holder, (o) => carClass(THREE, o.material, mats), parts);
     srcMats.forEach((m) => m.dispose());
@@ -542,9 +526,8 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false, 
     built.shell.add(parts);
     real.forEach((r) => built.group.add(r.piv));
     built.wheels.length = 0; real.forEach((r) => built.wheels.push(r));
-    const body = merged.find((m) => m.material === mats.gloss);
-    const pp = body ? addPopups(THREE, built, mats, body) : null;
-    built.fx = { mats, pop: pp ? pp.pop : null, rise: pp ? pp.rise : 0, k: 0, brake: 0 };
+    if (pops.length) built.shell.add(popGroup);
+    built.fx = { mats, pops: pops.length ? pops : null, open: opts.popOpen ?? 1.4, k: 0, brake: 0 };
     animateAE86(built, 0, {});
     built.realModel = true;
     return true;
