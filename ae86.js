@@ -21,7 +21,7 @@ export function buildAE86(THREE, opts = {}) {
   const rubberTrim = mat(THREE.MeshStandardMaterial, { color: 0x070808, roughness: 0.85, metalness: 0 }, 0.2);
   const glass = mat(THREE.MeshPhysicalMaterial, { color: 0x03070a, roughness: 0.02, metalness: 0.0, clearcoat: 1, clearcoatRoughness: 0 }, 2.0);
   const chrome = mat(THREE.MeshStandardMaterial, { color: 0xe4eae7, roughness: 0.08, metalness: 1 }, 1.4);
-  const rimMat = mat(THREE.MeshStandardMaterial, { color: 0xd2d9d6, roughness: 0.16, metalness: 1 }, 1.3);
+  const rimMat = mat(THREE.MeshStandardMaterial, { color: 0xa9702f, roughness: 0.22, metalness: 1 }, 1.3);   // bronce, igual que el carro de Blender
   const rubber = mat(THREE.MeshStandardMaterial, { color: 0x090909, roughness: 0.95, metalness: 0 }, 0.12);
   const discMat = mat(THREE.MeshStandardMaterial, { color: 0x6f7374, roughness: 0.4, metalness: 0.9 }, 0.9);
   const caliper = new THREE.MeshStandardMaterial({ color: 0xc8261f, roughness: 0.45, metalness: 0.35 });
@@ -207,7 +207,6 @@ export function buildAE86(THREE, opts = {}) {
   part(new THREE.BoxGeometry(1.5, 0.2, 0.04), black, 0, 0.73, -2.115);
   [-1, 1].forEach((s) => {
     for (let i = 0; i < 3; i++) part(new THREE.BoxGeometry(0.14, 0.17, 0.05), tail, s * (0.4 + i * 0.165), 0.73, -2.125);
-    part(new THREE.BoxGeometry(0.14, 0.15, 0.05), tail, s * 0.9, 0.73, -2.11);
     part(new THREE.BoxGeometry(0.1, 0.05, 0.04), lampOn, s * 0.28, 0.66, -2.13);
     part(new THREE.BoxGeometry(0.46, 0.012, 0.055), black, s * 0.58, 0.82, -2.127);
   });
@@ -304,7 +303,7 @@ export function buildAE86(THREE, opts = {}) {
 // Une las mallas bajo `root` en una sola por grupo y las deja como hijas de `target`.
 // pick(malla) -> null (no tocar) | { key, material, color?, flag? }
 //   color: se hornea como color por vértice (varios materiales pasan a ser uno solo)
-//   flag: atributo `panda` (1 = pintura que recibe el corte de dos tonos)
+//   flag: atributo `panda` (1 = pintura que recibe el corte de dos tonos, 2 = negro brillante: el capó puede pasar a blanco)
 export const byMaterial = (o) => ({ key: o.material.uuid, material: o.material });
 export function mergeMeshes(THREE, root, pick, target = root) {
   root.updateWorldMatrix(true, true); target.updateWorldMatrix(true, false);
@@ -377,8 +376,10 @@ export function disposeTree(root) {
 // Siete materiales para todo el carro; los colores van por vértice.
 // Con envMap: pintura, metal y vidrio reflejan el entorno (barato: un solo mapa pequeño).
 // Sin envMap: sombreado caricatura por bandas.
+const PAINT = 0xe6e8e4;   // blanco de la carrocería
 const SPLIT_Y = 0.585;   // altura del corte "panda": por debajo, la pintura es negra
-export function makeCarMaterials(THREE, { envMap = null, toonGradient = null, clearcoat = false } = {}) {
+export function makeCarMaterials(THREE, { envMap = null, toonGradient = null, clearcoat = false, hood = 'white' } = {}) {
+  const pc = new THREE.Color(PAINT), paintGl = `vec3(${pc.r.toFixed(4)}, ${pc.g.toFixed(4)}, ${pc.b.toFixed(4)})`;
   const keep = (m, name) => { m.name = name; m.userData.keep = true; return m; };
   const toon = (p) => new THREE.MeshToonMaterial({ gradientMap: toonGradient, ...p });
   const gloss = keep(envMap
@@ -387,12 +388,13 @@ export function makeCarMaterials(THREE, { envMap = null, toonGradient = null, cl
   // Corte de dos tonos calculado en el shader: nítido aunque los triángulos sean grandes
   gloss.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float panda; varying float vPanda; varying float vCarY;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPanda = panda; vCarY = position.y;');
+      .replace('#include <common>', '#include <common>\nattribute float panda; varying float vPanda; varying vec3 vCar;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPanda = panda; vCar = position;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vPanda; varying float vCarY;')
+      .replace('#include <common>', '#include <common>\nvarying float vPanda; varying vec3 vCar;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        if (vPanda > 0.5) { float pw = max(fwidth(vCarY), 0.0005); diffuseColor.rgb = mix(vec3(0.004), diffuseColor.rgb, smoothstep(${SPLIT_Y.toFixed(3)} - pw, ${SPLIT_Y.toFixed(3)} + pw, vCarY)); }`);
+        if (vPanda > 1.5) { ${hood === 'white' ? `if (vCar.y > 0.70 && vCar.z > 0.93 && vCar.z < 2.06) diffuseColor.rgb = ${paintGl};` : ''} }
+        else if (vPanda > 0.5) { float pw = max(fwidth(vCar.y), 0.0005); diffuseColor.rgb = mix(vec3(0.004), diffuseColor.rgb, smoothstep(${SPLIT_Y.toFixed(3)} - pw, ${SPLIT_Y.toFixed(3)} + pw, vCar.y)); }`);
   };
   const matte = keep(envMap ? new THREE.MeshLambertMaterial({ vertexColors: true }) : toon({ vertexColors: true }), 'mate');
   const metal = keep(envMap
@@ -412,8 +414,8 @@ const BRONZE = 0xa9702f;
 function carClass(THREE, m, mats) {
   const c = (hex) => new THREE.Color(hex);
   switch (m.name) {
-    case 'paint': return { key: 'gloss', material: mats.gloss, color: c(0xe6e8e4), flag: 1 };
-    case 'black': return { key: 'gloss', material: mats.gloss, color: c(0x0b0c0d) };
+    case 'paint': return { key: 'gloss', material: mats.gloss, color: c(PAINT), flag: 1 };
+    case 'black': return { key: 'gloss', material: mats.gloss, color: c(0x0b0c0d), flag: 2 };
     case 'glass': return { key: 'glass', material: mats.glass };
     case 'tail': return { key: 'tail', material: mats.tail };
     case 'lamp': case 'amber': return { key: 'glow', material: mats.glow, color: m.color.clone() };
@@ -439,7 +441,7 @@ function addPopups(THREE, built, mats, body) {
   if (yF < 0.5 || yB < 0.5) return null;
   const RISE = 0.098, W = 0.34, D = 0.25, H = 0.2, zc = 1.815;
   const pop = new THREE.Group(); pop.name = 'faros-escamoteables';
-  const white = new THREE.Color(0xe6e8e4), dark = new THREE.Color(0x0b0c0d);
+  const white = new THREE.Color(PAINT), dark = new THREE.Color(0x0b0c0d);
   [-1, 1].forEach((sx) => {
     const geo = new THREE.BoxGeometry(W, H, D), p = geo.attributes.position, n = geo.attributes.normal, col = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
@@ -475,7 +477,7 @@ export function animateAE86(built, dt, st = {}) {
 // (nodos wheel-front-* / wheel-back-*). Con ?flip se invierte el frente.
 // Las ruedas se reparentan a pivotes alineados al mundo (dirección y giro funcionan igual que en el carro procedural).
 // Todo el carro se une en unas 20 mallas (venía en 58) y el carro procedural se libera de la memoria.
-// opts: { clearcoat, drop (m que baja la carrocería), track (m que salen las ruedas) }
+// opts: { clearcoat, hood ('white' de serie | 'black'), drop (m que baja la carrocería), track (m que salen las ruedas) }
 export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false, toonGradient = null, opts = {}) {
   // lo que hay ahora (carro procedural) se quita cuando el GLB esté listo; se anota antes de esperar nada
   const old = [...built.shell.children, ...built.group.children.filter((ch) => ch !== built.shell)];
@@ -506,7 +508,7 @@ export async function tryLoadAE86Model(THREE, built, url, envMap, flip = false, 
     if (wn.length === 4) c.x = wn.reduce((a, n) => a + n.getWorldPosition(new THREE.Vector3()).x, 0) / 4;
     holder.position.set(-c.x, -box.min.y, -c.z); holder.updateMatrixWorld(true);
 
-    const mats = makeCarMaterials(THREE, { envMap, toonGradient, clearcoat: !!opts.clearcoat });
+    const mats = makeCarMaterials(THREE, { envMap, toonGradient, clearcoat: !!opts.clearcoat, hood: opts.hood || 'white' });
 
     // ruedas: pivote (dirección, eje Y del mundo) -> giro (eje X del mundo) -> malla unida
     const real = [], track = opts.track ?? 0.012;

@@ -548,7 +548,7 @@ const USE_GLB = !LOW && !location.search.includes('procedural');
 const ae86 = buildAE86(THREE, { envMap: HQ ? envMap : null, detail: !LOW && !USE_GLB });
 const toonGrad = makeToonGradient(THREE);
 if (TOON) toonify(THREE, ae86.group, toonGrad);
-if (USE_GLB) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null, { clearcoat: HQ });
+if (USE_GLB) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null, { clearcoat: HQ, hood: /capo=negro/.test(location.search) ? 'black' : 'white' });
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (HQ) car.add(beam, beam.target);
