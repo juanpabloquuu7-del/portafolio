@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildAE86, tryLoadAE86Model, toonify, makeToonGradient } from '../ae86.js';
+import { buildAE86, tryLoadAE86Model, toonify, makeToonGradient, animateAE86, mergeMeshes, byMaterial } from '../ae86.js';
 
 const $ = (id) => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -139,12 +139,16 @@ const rand = (() => { let t = 7; return () => ((t = (t * 16807) % 2147483647) - 
   const ring = (r0, r1, color, op, dash) => {
     const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     if (!dash) { mk(new THREE.RingGeometry(r0, r1, 160), m, 0.06); return; }
-    for (let i = 0; i < dash; i += 2) mk(new THREE.RingGeometry(r0, r1, 4, 1, (i / dash) * Math.PI * 2, (Math.PI * 2) / dash), m, 0.06);
+    const grp = new THREE.Group();
+    for (let i = 0; i < dash; i += 2) { const seg = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 4, 1, (i / dash) * Math.PI * 2, (Math.PI * 2) / dash), m); seg.rotation.x = -Math.PI / 2; seg.position.y = 0.06; grp.add(seg); }
+    mergeMeshes(THREE, grp, byMaterial, grp); scene.add(grp);   // 60 tramos en una sola malla
   };
   ring(WORLD_R - 3.2, WORLD_R - 2.95, 0xe9b93a, 0.9, 0);
   ring(WORLD_R - 3.9, WORLD_R - 3.7, 0xf2f2ee, 0.7, 120);
   const zebra = new THREE.MeshBasicMaterial({ color: 0xf2f2ee, transparent: true, opacity: 0.75, depthWrite: false });
-  for (let i = -5; i <= 5; i++) { const bar = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 4.2), zebra); bar.rotation.x = -Math.PI / 2; bar.position.set(i * 1.5, 0.06, 13); scene.add(bar); }
+  const zg = new THREE.Group();
+  for (let i = -5; i <= 5; i++) { const bar = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 4.2), zebra); bar.rotation.x = -Math.PI / 2; bar.position.set(i * 1.5, 0.06, 13); zg.add(bar); }
+  mergeMeshes(THREE, zg, byMaterial, zg); scene.add(zg);
 }
 
 /* Cielo: cúpula con degradado de atardecer que sigue a la cámara */
@@ -176,24 +180,27 @@ const sky = (() => {
 }
 
 const bridgeCars = [];
+let welcomeBoard = null;
 let cityTraffic = null;
 /* ---------- Bucaramanga: montañas, ciudad, catedral y parques ---------- */
 {
   const flat = (c, extra) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, flatShading: true, ...(extra || {}) });
+  const far = new THREE.Group();
   const MN = LOW ? 18 : 34;
   for (let i = 0; i < MN; i++) {
     const a = (i / MN) * Math.PI * 2 + rand() * 0.1, r = 540 + rand() * 110, h = 100 + rand() * 160, rad = 110 + rand() * 90;
     const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 7 + (i % 3)), flat(TOON ? (i % 2 ? 0x6a5cb8 : 0x7f70cc) : (i % 2 ? 0x1c4a45 : 0x22544c)));
-    m.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r); m.rotation.y = rand() * 6; scene.add(m);
+    m.position.set(Math.cos(a) * r, h / 2 - 4, Math.sin(a) * r); m.rotation.y = rand() * 6; far.add(m);
   }
   // Cañón del Chicamocha: paredes rojizas escalonadas hacia un lado
   const canyonA = Math.PI * 0.78;
   for (let i = 0; i < 14; i++) {
     const a = canyonA + (i - 7) * 0.075, r = 395 + (i % 3) * 18, h = 70 + rand() * 70;
     const m = new THREE.Mesh(new THREE.BoxGeometry(64, h, 38), flat(TOON ? (i % 2 ? 0xd9824a : 0xeb9a5c) : (i % 2 ? 0x7a5039 : 0x8c5d3f)));
-    m.position.set(Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r); m.lookAt(0, h / 2, 0); scene.add(m);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(66, 6, 40), flat(TOON ? 0x7ad05a : 0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); scene.add(cap);
+    m.position.set(Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r); m.lookAt(0, h / 2, 0); far.add(m);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(66, 6, 40), flat(TOON ? 0x7ad05a : 0x6b7a45)); cap.position.copy(m.position); cap.position.y = h - 1; cap.quaternion.copy(m.quaternion); far.add(cap);
   }
+  { const farMat = flat(0xffffff, { vertexColors: true }); mergeMeshes(THREE, far, (o) => ({ key: 'far', material: farMat, color: o.material.color }), far).forEach((m) => { m.frustumCulled = false; }); scene.add(far); }
   // Suelo de la ciudad: manzanas y calles
   {
     const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
@@ -280,6 +287,7 @@ let cityTraffic = null;
     const dome = new THREE.Mesh(new THREE.SphereGeometry(7, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), copper); dome.position.set(0, 15, -2); g.add(dome);
     const lant = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 4, 12), cream); lant.position.set(0, 22, -2); g.add(lant);
     g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    mergeMeshes(THREE, g, byMaterial, g);
     const ang = Math.PI * 1.25; g.position.set(Math.cos(ang) * 98, 0, Math.sin(ang) * 98); g.lookAt(0, 0, 0); scene.add(g);
   }
   // Árboles (ceibas y palmas) en el parque que rodea la plaza
@@ -302,6 +310,7 @@ let cityTraffic = null;
     const bg = new THREE.Group();
     const concrete = flat(0xb7b5ac), dark = flat(0x2b3033), rail = flat(0xd8d6cc);
     const L = 84, W = 11, Y = 10;
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0xffe2a8 });
     const deck = new THREE.Mesh(new THREE.BoxGeometry(L, 1.1, W), concrete); deck.position.y = Y; deck.castShadow = deck.receiveShadow = true; bg.add(deck);
     const road = new THREE.Mesh(new THREE.BoxGeometry(L, 0.06, W - 3), new THREE.MeshStandardMaterial({ color: 0x2f3537, roughness: 0.9 })); road.position.y = Y + 0.6; bg.add(road);
     const lane = new THREE.Mesh(new THREE.PlaneGeometry(L, 0.18), new THREE.MeshBasicMaterial({ color: 0xe9b93a })); lane.rotation.x = -Math.PI / 2; lane.position.y = Y + 0.65; bg.add(lane);
@@ -310,7 +319,7 @@ let cityTraffic = null;
       const base = new THREE.Mesh(new THREE.BoxGeometry(L, 0.9, 0.25), concrete); base.position.set(0, Y + 1.0, sd * (W / 2 - 0.2)); bg.add(base);
       for (let x = -L / 2 + 3; x <= L / 2 - 3; x += 7) {
         const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.2, 6), dark); post.position.set(x, Y + 3.3, sd * (W / 2 - 0.2)); bg.add(post);
-        const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.3), new THREE.MeshBasicMaterial({ color: 0xffe2a8 })); lamp.position.set(x, Y + 5.9, sd * (W / 2 - 0.6)); bg.add(lamp);
+        const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.3), lampMat); lamp.position.set(x, Y + 5.9, sd * (W / 2 - 0.6)); bg.add(lamp);
       }
     });
     // pilas en forma de V invertida
@@ -318,14 +327,19 @@ let cityTraffic = null;
       const pier = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.9, Y - 0.4, 8), concrete); pier.position.set(x, (Y - 0.4) / 2, 0); pier.castShadow = true; bg.add(pier);
       const cap = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.9, W - 1.5), concrete); cap.position.set(x, Y - 0.9, 0); bg.add(cap);
     }
-    // tráfico: carritos que cruzan el puente
+    // las ~75 piezas fijas del puente quedan en 5 mallas (una por material)
+    mergeMeshes(THREE, bg, byMaterial, bg);
+    // tráfico: carritos que cruzan el puente (cada uno es una sola malla con colores por vértice)
     const carMat = [0xc0392b, 0x2f6fb5, 0xe9e4d8, 0xd9a21b, 0x3a7d44];
+    const toyMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.2 });
+    const toyPick = (o) => ({ key: 'toy', material: toyMat, color: o.material.color });
     const NC = LOW ? 4 : 8;
     for (let i = 0; i < NC; i++) {
       const c = new THREE.Group();
       const body = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.8, 1.5), new THREE.MeshStandardMaterial({ color: carMat[i % carMat.length], roughness: 0.4, metalness: 0.3 })); body.position.y = 0.7; c.add(body);
       const cab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.6, 1.3), new THREE.MeshStandardMaterial({ color: 0x10181c, roughness: 0.2 })); cab.position.set(-0.2, 1.3, 0); c.add(cab);
       const tl = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, 1.1), new THREE.MeshBasicMaterial({ color: 0xff3030 })); tl.position.set(-1.62, 0.8, 0); c.add(tl);
+      mergeMeshes(THREE, c, toyPick, c).forEach((m) => { m.castShadow = false; });
       const dir = i % 2 ? 1 : -1;
       c.rotation.y = dir > 0 ? 0 : Math.PI;
       bridgeCars.push({ c, dir, x: -L / 2 + (i / NC) * L, lane: dir * 1.9, speed: 6 + (i % 4) * 1.4 });
@@ -368,7 +382,8 @@ let cityTraffic = null;
   g.fillStyle = '#e2f4ed'; g.font = '700 96px system-ui, Segoe UI, sans-serif'; g.textAlign = 'center'; g.fillText('BUCARAMANGA', 512, 128);
   g.fillStyle = '#7dffce'; g.font = '600 46px system-ui, Segoe UI, sans-serif'; g.fillText('Ciudad Bonita · Santander, Colombia', 512, 200);
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = AN;
-  const board = new THREE.Mesh(new THREE.PlaneGeometry(12, 3), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false })); board.position.set(0, 5.4, -19); scene.add(board);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(12, 3), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false, transparent: true })); board.position.set(0, 5.4, -19); scene.add(board);
+  welcomeBoard = board;
   [-5.4, 5.4].forEach((x) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 6.4, 8), flat(0x2a3a35)); p.position.set(x, 3.2, -19.15); p.castShadow = true; scene.add(p); });
 }
 
@@ -435,15 +450,17 @@ ZONES.forEach((z) => {
   zoneObjs.push({ z, g, obj, pad, ring });
 });
 
-/* Senderos desde el inicio */
+/* Senderos desde el inicio (una sola malla con colores por vértice) */
+const paths = new THREE.Group(), pathMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.22, depthWrite: false });
 ZONES.forEach((z) => {
   const len = Math.hypot(z.pos[0], z.pos[1]) - 8;
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.35, len), new THREE.MeshBasicMaterial({ color: new THREE.Color(z.color), transparent: true, opacity: 0.18, depthWrite: false }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.35, len), new THREE.MeshBasicMaterial({ color: new THREE.Color(z.color) }));
   const ang = Math.atan2(z.pos[0], z.pos[1]);
   m.rotation.order = 'YXZ'; m.rotation.set(-Math.PI / 2, ang, 0);
   m.position.set(Math.sin(ang) * (len / 2 + 2), 0.025, Math.cos(ang) * (len / 2 + 2));
-  scene.add(m);
+  paths.add(m);
 });
+mergeMeshes(THREE, paths, (o) => ({ key: 'paths', material: pathMat, color: o.material.color }), paths); scene.add(paths);
 
 /* ---------- Props empujables ---------- */
 const crateMat = new THREE.MeshStandardMaterial({ color: 0x1d5a47, roughness: 0.55, metalness: 0.1 });
@@ -511,9 +528,9 @@ function launchBadge(p) {
 }
 
 /* ---------- Carro: Toyota AE86 ---------- */
-const envMap = !HQ ? null : (() => {
+const envMap = LOW ? null : (() => {
   const es = new THREE.Scene();
-  es.add(new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: sky.material.map, side: THREE.BackSide })));
+  es.add(new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: sky.material.map, color: HQ ? 0xffffff : 0x8f8f8f, side: THREE.BackSide })));   // cielo atenuado: el blanco del carro no se tiñe de rosa
   const sunDot = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(16, 10, 5) }));
   sunDot.position.set(-40, 34, -30).normalize().multiplyScalar(48); es.add(sunDot);
   [[0, 50, 0, 40, 10], [-30, 28, 28, 18, 6], [34, 20, -10, 12, 5]].forEach(([x, y, z, w, h]) => {
@@ -521,22 +538,97 @@ const envMap = !HQ ? null : (() => {
     sb.position.set(x, y, z); sb.lookAt(0, 0, 0); es.add(sb);
   });
   const floor = new THREE.Mesh(new THREE.CircleGeometry(80, 32), new THREE.MeshBasicMaterial({ color: 0x20262a })); floor.rotation.x = -Math.PI / 2; floor.position.y = -4; es.add(floor);
-  return new THREE.PMREMGenerator(renderer).fromScene(es, 0.012).texture;
+  const pm = new THREE.PMREMGenerator(renderer), tex = pm.fromScene(es, 0.012).texture; pm.dispose();
+  es.traverse((o) => { if (o.geometry) { o.geometry.dispose(); o.material.dispose(); } });
+  return tex;
 })();
-if (asphaltMat && envMap) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
-const ae86 = buildAE86(THREE, { envMap, detail: !LOW });
+if (asphaltMat && envMap && HQ) { asphaltMat.envMap = envMap; asphaltMat.envMapIntensity = 0.5; }
+// Mientras llega el GLB se muestra el carro procedural ligero (antes se construía el detallado y se escondía)
+const USE_GLB = !LOW && !location.search.includes('procedural');
+const ae86 = buildAE86(THREE, { envMap: HQ ? envMap : null, detail: !LOW && !USE_GLB });
 const toonGrad = makeToonGradient(THREE);
 if (TOON) toonify(THREE, ae86.group, toonGrad);
-if (!LOW && !location.search.includes('procedural')) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null);
+if (USE_GLB) tryLoadAE86Model(THREE, ae86, '../models/ae86.glb', envMap, location.search.includes('flip'), TOON ? toonGrad : null, { clearcoat: HQ });
 const car = ae86.group, shell = ae86.shell, wheels = ae86.wheels;
 const beam = new THREE.SpotLight(0xfff6d0, 60, 34, 0.5, 0.6, 1.4);
 beam.position.set(0, 0.9, 1.9); beam.target.position.set(0, 0, 12); if (HQ) car.add(beam, beam.target);
 scene.add(car);
 
+/* Detalles vivos del carro (4 draw calls): sombra de contacto, luz de los faros en el piso, marcas de derrape y humo */
+const fxTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+const flatFx = (w, d, mat, y, z = 0) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat); m.rotation.x = -Math.PI / 2; m.position.set(0, y, z); m.renderOrder = 1; car.add(m); return m; };
+// sombra de contacto: mancha suave bajo el carro (también da piso al carro en calidad Eco, que no tiene sombras)
+flatFx(2.7, 5.3, new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, opacity: 0.62, map: fxTex(64, 128, (g, w, h) => {
+  g.translate(w / 2, h / 2); g.scale(1, h / w);
+  const gr = g.createRadialGradient(0, 0, w * 0.16, 0, 0, w * 0.5); gr.addColorStop(0, 'rgba(8,6,20,1)'); gr.addColorStop(0.55, 'rgba(8,6,20,0.75)'); gr.addColorStop(1, 'rgba(8,6,20,0)');
+  g.fillStyle = gr; g.fillRect(-w / 2, -w / 2, w, w);
+}) }), 0.075);
+// luz de los faros sobre el asfalto (mancha aditiva, no es una luz real)
+const beamMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending, color: 0xfff0c8, map: fxTex(128, 256, (g, w, h) => {
+  [0.38, 0.62].forEach((cx) => {   // dos manchas alargadas que se desvanecen hacia todos los bordes
+    g.save(); g.translate(w * cx, h * 0.42); g.scale(1, 2.2);
+    const gr = g.createRadialGradient(0, -h * 0.07, 0, 0, 0, w * 0.35); gr.addColorStop(0, 'rgba(255,255,255,0.85)'); gr.addColorStop(0.45, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(-w, -h, w * 2, h * 2); g.restore();
+  });
+}) });
+const beamFx = flatFx(5.2, 10, beamMat, 0.08, 6.2);
+let lightsOn = true;
+// marcas de derrape: 240 parches instanciados que se reutilizan en anillo
+const SK = 240, skid = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.19, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x14121c, transparent: true, opacity: 0.42, depthWrite: false }), SK);
+{ const z0 = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < SK; i++) skid.setMatrixAt(i, z0); }
+skid.frustumCulled = false; skid.renderOrder = 1; scene.add(skid);
+let skN = 0; const skLast = [null, null], skO = new THREE.Object3D();
+function laySkid(i, x, z) {
+  const a = skLast[i]; if (!a) { skLast[i] = { x, z }; return; }
+  const dx = x - a.x, dz = z - a.z, d = Math.hypot(dx, dz); if (d < 0.45) return;
+  skO.position.set((x + a.x) / 2, 0.066, (z + a.z) / 2); skO.rotation.set(0, Math.atan2(dx, dz), 0); skO.scale.set(1, 1, d + 0.06); skO.updateMatrix();
+  skid.setMatrixAt(skN, skO.matrix); skN = (skN + 1) % SK; skid.instanceMatrix.needsUpdate = true; a.x = x; a.z = z;
+}
+// humo de llanta: 48 puntos con un shader mínimo (tamaño y transparencia según la vida)
+const SM = 48, smPos = new Float32Array(SM * 3), smLife = new Float32Array(SM), smVel = new Float32Array(SM * 3);
+const smGeo = new THREE.BufferGeometry(); smGeo.setAttribute('position', new THREE.BufferAttribute(smPos, 3)); smGeo.setAttribute('life', new THREE.BufferAttribute(smLife, 1));
+const smoke = new THREE.Points(smGeo, new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, uniforms: { uSize: { value: 700 }, uColor: { value: new THREE.Color(TOON ? 0xfff3e6 : 0xb9c0c4) } },
+  vertexShader: 'attribute float life; varying float vL; uniform float uSize; void main(){ vL = life; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = uSize * (1.7 - life) / -mv.z; gl_Position = projectionMatrix * mv; }',
+  fragmentShader: 'varying float vL; uniform vec3 uColor; void main(){ float a = smoothstep(0.5, 0.12, length(gl_PointCoord - 0.5)) * vL * 0.42; if (a < 0.01) discard; gl_FragColor = vec4(uColor, a); }',
+}));
+smoke.frustumCulled = false; smoke.visible = false; scene.add(smoke);
+let smN = 0, smAlive = 0, smAcc = 0;
+function puff(x, z, vx, vz) {
+  const i = smN; smN = (smN + 1) % SM;
+  smPos[i * 3] = x; smPos[i * 3 + 1] = 0.25; smPos[i * 3 + 2] = z; smLife[i] = 1;
+  smVel[i * 3] = vx * 0.12 + (Math.random() - 0.5) * 1.2; smVel[i * 3 + 1] = 0.7 + Math.random() * 0.6; smVel[i * 3 + 2] = vz * 0.12 + (Math.random() - 0.5) * 1.2;
+}
+function updateCarFx(dt, m) {
+  // faros escamoteables y luz de freno
+  const k = animateAE86(ae86, dt, { lights: lightsOn, brake: m.braking });
+  beamMat.opacity = k * (TOON ? 0.4 : 0.5); beamFx.visible = k > 0.03;
+  // derrape: marcas y humo desde las ruedas traseras
+  const slide = !reduced && m.sp > 5 && (Math.abs(m.vl) > 2.6 || (m.braking && m.sp > 9));
+  if (slide) {
+    const fx = Math.sin(S.h), fz = Math.cos(S.h), rx = Math.cos(S.h), rz = -Math.sin(S.h);
+    smAcc += dt;
+    [-1, 1].forEach((sd, i) => {
+      const x = S.x - fx * 1.19 + rx * sd * 0.7, z = S.z - fz * 1.19 + rz * sd * 0.7;
+      laySkid(i, x, z);
+      if (smAcc > 0.045) puff(x, z, S.vx, S.vz);
+    });
+    if (smAcc > 0.045) smAcc = 0;
+  } else { skLast[0] = skLast[1] = null; }
+  smAlive = 0;
+  for (let i = 0; i < SM; i++) {
+    if (smLife[i] <= 0) continue;
+    smLife[i] = Math.max(0, smLife[i] - dt * 1.15); smAlive++;
+    smPos[i * 3] += smVel[i * 3] * dt; smPos[i * 3 + 1] += smVel[i * 3 + 1] * dt; smPos[i * 3 + 2] += smVel[i * 3 + 2] * dt;
+  }
+  smoke.visible = smAlive > 0;
+  if (smAlive || slide) { smGeo.attributes.position.needsUpdate = true; smGeo.attributes.life.needsUpdate = true; }
+}
+
 /* Estado del carro */
-const S = { x: 0, z: 4, h: Math.PI, vx: 0, vz: 0, steer: 0, rollV: 0, boost: 0 };
+const S = { x: 0, z: 4, h: Math.PI, vx: 0, vz: 0, steer: 0, rollV: 0, pitchV: 0, vfPrev: 0, boost: 0 };
 const START = { x: 0, z: 4, h: Math.PI };
-const camPos = new THREE.Vector3(); let camInit = false;
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), tmp2 = new THREE.Vector3(); let camInit = false, idleT = 0, orbitA = 0;
 
 /* ---------- Entrada ---------- */
 const keys = new Set();
@@ -546,6 +638,7 @@ addEventListener('keydown', (e) => {
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
   if (k === 'escape') closeOvs();
   if (k === 'r') resetCar();
+  if (k === 'l' && !e.repeat) { lightsOn = !lightsOn; toast(lightsOn ? 'Faros arriba' : 'Faros abajo'); }
   if (k === 'e' || k === 'enter') { if (!e.target.closest('a,button') && activeZone) openPrimary(activeZone); }
   keys.add(k); hideHint();
 });
@@ -576,7 +669,7 @@ const hideHint = () => { if (hintHidden) return; hintHidden = true; setTimeout((
 
 // Atajo: /mundo-3d/#puente deja el carro frente al Puente de la Novena
 if (location.hash === '#puente') Object.assign(START, { x: -50, z: 15, h: -Math.PI / 2 });
-function resetCar() { Object.assign(S, START, { vx: 0, vz: 0, steer: 0 }); }
+function resetCar() { Object.assign(S, START, { vx: 0, vz: 0, steer: 0, vfPrev: 0 }); skLast[0] = skLast[1] = null; }
 
 /* ---------- Panel de zona ---------- */
 let activeZone = null;
@@ -692,11 +785,14 @@ function step(dt) {
   // modelo del carro
   car.position.set(S.x, 0, S.z);
   S.rollV += (-vl * 0.012 - S.rollV) * Math.min(1, dt * 6);
+  // suspensión: la nariz baja al frenar y sube al acelerar
+  const acc = dt > 0 ? (vf - S.vfPrev) / dt : 0; S.vfPrev = vf;
+  S.pitchV += (THREE.MathUtils.clamp(-acc * 0.0016, -0.03, 0.04) - S.pitchV) * Math.min(1, dt * 5);
   car.rotation.set(0, S.h, 0);
-  shell.rotation.z = S.rollV;
+  shell.rotation.z = S.rollV; shell.rotation.x = reduced ? 0 : S.pitchV;
   const spin = (vf * dt) / 0.31;
   wheels.forEach((w) => { w.w.rotation.x += spin; if (w.front) w.piv.rotation.y = S.steer * 0.5; });
-  return { vf, sp, thr };
+  return { vf, vl, sp, thr, braking: (thr < 0 && vf > 0.6) || (drift && sp > 2) };
 }
 
 function updateZones(t) {
@@ -734,7 +830,7 @@ if (btnQ) btnQ.addEventListener('click', () => {
   try { localStorage.setItem('mundoQ', qKey); } catch (e) {}
   applyQuality(); toast(`Calidad ${QUALITY[qKey].label}: ${qKey === 'eco' ? '30 fps, sin sombras, resolución baja' : qKey === 'normal' ? '60 fps, sombras suaves' : 'máxima nitidez, sin límite de fps'}`);
 });
-let ftAvg = 16, ftCount = 0;
+let ftAvg = 16, ftCount = 0, syncOutlines = null;
 function adaptResolution(rawDt) {
   ftAvg += (rawDt * 1000 - ftAvg) * 0.08; ftCount++;
   if (ftCount < 90 || ftCount % 45) return;
@@ -759,15 +855,25 @@ function frame() {
 
   // cámara
   const fxx = Math.sin(S.h), fzz = Math.cos(S.h);
-  const back = 11 + Math.min(m.sp, 30) * 0.12;
-  tmp.set(S.x - fxx * back, 6.2 + Math.min(m.sp, 30) * 0.05, S.z - fzz * back);
-  if (!camInit) { camPos.copy(tmp); camInit = true; }
-  camPos.lerp(tmp, 1 - Math.exp(-4.2 * dt));
+  const back = 9.8 + Math.min(m.sp, 30) * 0.14;
+  tmp.set(S.x - fxx * back, 5.4 + Math.min(m.sp, 30) * 0.06, S.z - fzz * back);
+  // carro quieto unos segundos: la cámara baja y le da la vuelta despacio (se cancela al conducir)
+  idleT = (m.sp > 0.5 || m.thr !== 0) ? 0 : idleT + dt;
+  const showcase = !reduced && idleT > 6 && !activeZone && !document.querySelector('.overlay.open');
+  if (showcase) { orbitA += dt * 0.2; const a = S.h + Math.PI + orbitA; tmp.set(S.x + Math.sin(a) * 7.4, 2.2, S.z + Math.cos(a) * 7.4); tmp2.set(S.x, 0.75, S.z); }
+  else { orbitA = 0; tmp2.set(S.x + fxx * 4.5, 1.2, S.z + fzz * 4.5); }
+  if (!camInit) { camPos.copy(tmp); camLook.copy(tmp2); camInit = true; }
+  camPos.lerp(tmp, 1 - Math.exp(-(showcase ? 1.6 : 4.2) * dt));
+  camLook.lerp(tmp2, 1 - Math.exp(-(showcase ? 2.5 : 14) * dt));
   camera.position.copy(camPos);
-  camera.lookAt(S.x + fxx * 4.5, 1.2, S.z + fzz * 4.5);
+  camera.lookAt(camLook);
+  updateCarFx(dt, m);
+  // el cartel de bienvenida se vuelve transparente si la cámara lo va a atravesar
+  if (welcomeBoard) { const o = THREE.MathUtils.clamp((camPos.distanceTo(welcomeBoard.position) - 5) / 7, 0, 1); welcomeBoard.material.opacity = o; welcomeBoard.visible = o > 0.02; }
 
   sun.position.set(S.x - 40, 34, S.z - 30); sun.target.position.set(S.x, 0, S.z);
   sky.position.copy(camera.position);
+  if (syncOutlines) syncOutlines();
   if (cityTraffic) cityTraffic(dt);
   bridgeCars.forEach((b) => { b.x += b.dir * b.speed * dt; if (b.x > 42) b.x = -42; if (b.x < -42) b.x = 42; b.c.position.x = b.x; });
 
@@ -781,11 +887,19 @@ if (TOON) {
   toonify(THREE, scene, toonGrad);
   const outlineMat = new THREE.MeshBasicMaterial({ color: 0x1d1636, side: THREE.BackSide });
   const outline = (mesh, k = 1.07) => { const o = new THREE.Mesh(mesh.geometry, outlineMat); o.scale.setScalar(k); mesh.add(o); };
-  props.forEach((p) => outline(p.mesh, p.kind === 'cone' ? 1.12 : 1.07));
+  props.forEach((p) => { if (p.kind !== 'badge') outline(p.mesh, p.kind === 'cone' ? 1.12 : 1.07); });
+  // contorno de las 15 insignias: una malla instanciada que sigue a cada cubo (15 draw calls menos)
+  const badges = props.filter((p) => p.kind === 'badge');
+  const bo = new THREE.InstancedMesh(badgeGeo, outlineMat, badges.length); bo.frustumCulled = false; scene.add(bo);
+  const sc = new THREE.Matrix4().makeScale(1.07, 1.07, 1.07), mm = new THREE.Matrix4();
+  syncOutlines = () => { badges.forEach((p, i) => { p.mesh.updateMatrix(); bo.setMatrixAt(i, mm.multiplyMatrices(p.mesh.matrix, sc)); }); bo.instanceMatrix.needsUpdate = true; };
   zoneObjs.forEach((zo) => { const list = []; zo.obj.traverse((o) => { if (o.isMesh) list.push(o); }); list.forEach((o) => outline(o, 1.06)); });
 }
+// cada figura de zona (y su contorno) queda en una malla por material
+zoneObjs.forEach((zo) => mergeMeshes(THREE, zo.obj, byMaterial, zo.obj));
 applyQuality();
 resetCar();
+window.__mundo = { renderer, scene, camera, ae86, S };
 if (FX) {
   try {
     const base = 'three/addons/';
