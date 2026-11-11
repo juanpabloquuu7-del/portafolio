@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>Mundo 3D | Juan Pablo Quintanilla</title>
-  <meta name="description" content="Portafolio interactivo de Juan Pablo Quintanilla: maneja un carro por un mundo 3D y visita cada proyecto." />
+  <meta name="description" content="Portafolio interactivo de Juan Pablo Quintanilla: maneja un carro por un mundo abierto en 3D y sigue las guías hasta cada proyecto." />
   <meta name="theme-color" content="#060907" />
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
   <style>
@@ -37,7 +37,7 @@
 
     #toast { position: fixed; top: 72px; left: 50%; transform: translate(-50%, -8px); z-index: 7; padding: 0.55rem 1rem; font-size: 0.9rem; font-weight: 600; color: var(--text); background: rgba(14, 40, 31, 0.78); border: 1px solid var(--border); border-radius: 12px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; max-width: calc(100vw - 24px); text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
-    .hint { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
+    .hint { position: fixed; left: max(50%, 700px); bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 4; padding: 0.55rem 1rem; font-size: 0.8125rem; color: var(--muted); text-align: center; pointer-events: none; transition: opacity 0.5s ease; max-width: calc(100vw - 24px); }
     .hint kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; color: var(--accent-light); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; margin: 0 1px; }
     .hint.hide { opacity: 0; }
     @media (hover: none) { .hint { display: none; } }
@@ -59,6 +59,31 @@
     @media (hover: none) { .panel .key { display: none; } }
     @media (max-width: 640px) { .panel { right: 8px; left: 8px; width: auto; bottom: 168px; max-height: 42vh; overflow: auto; padding: 1rem; } .panel h2 { font-size: 1.15rem; } .btn { padding: 0.5rem 0.7rem; } #btn-list { font-size: 0.8rem; } }
     @media (max-height: 460px) and (orientation: landscape) { .panel { width: min(320px, 46vw); bottom: 8px; max-height: 70vh; overflow: auto; left: auto; right: 8px; } .touch { height: 150px; } .stick { width: 110px; height: 110px; } .tbtn { width: 64px; height: 64px; } }
+
+    /* guías: destino con brújula, minimapa y lista de proyectos */
+    .nav { position: fixed; z-index: 5; left: 12px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 8px; display: grid; grid-template-columns: auto auto; grid-template-areas: "target target" "map list"; gap: 8px; }
+    .nav-target { grid-area: target; appearance: none; font: inherit; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 10px; text-align: left; padding: 6px 10px 6px 6px; min-height: 44px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid var(--zone, var(--accent)); background: rgba(6, 9, 7, 0.45); }
+    .nav-target:hover { border-color: var(--accent-light); border-left-color: var(--zone, var(--accent)); }
+    .nav-arrow { flex: none; width: 30px; height: 30px; color: var(--zone, var(--accent)); }
+    .nav-arrow svg { display: block; width: 100%; height: 100%; }
+    .nav-txt { display: grid; min-width: 0; line-height: 1.2; }
+    .nav-txt small { font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .nav-txt b { font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-dist { margin-left: auto; padding-left: 8px; font-family: ui-monospace, Consolas, monospace; font-size: 0.8125rem; color: var(--accent-light); white-space: nowrap; }
+    #minimap { grid-area: map; width: 172px; height: 172px; display: block; cursor: pointer; border-radius: 50%; }
+    .nav-list { grid-area: list; list-style: none; padding: 0; display: grid; align-content: space-between; }
+    .nav-item { appearance: none; font: inherit; font-size: 0.75rem; color: var(--text); cursor: pointer; background: none; border: 1px solid transparent; border-radius: 7px; display: flex; align-items: center; gap: 7px; width: 100%; padding: 2px 6px 2px 3px; text-align: left; white-space: nowrap; }
+    .nav-item i { font-style: normal; font-weight: 800; font-size: 0.6875rem; flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--zone); color: #06140f; }
+    .nav-item:hover, .nav-item.on { border-color: var(--zone); background: rgba(6, 9, 7, 0.45); }
+    .nav-item.seen span::after { content: ' ✓'; color: var(--accent-light); }
+    .nav-target:focus-visible, .nav-item:focus-visible, #minimap:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; }
+    @media (max-width: 900px), (max-height: 520px) { .nav-list { display: none; } .nav { grid-template-columns: auto; grid-template-areas: "target" "map"; } .nav-target { max-width: 172px; } .nav-dist { display: none; } }
+    body.is-touch .nav, .nav.compact { top: calc(max(12px, env(safe-area-inset-top)) + 54px); bottom: auto; }
+    body.is-touch .nav-list { display: none; }
+    body.is-touch .nav { grid-template-columns: auto; grid-template-areas: "target" "map"; padding: 6px; gap: 6px; }
+    body.is-touch #minimap { width: 112px; height: 112px; }
+    body.is-touch .nav-target { max-width: 190px; min-height: 40px; }
+    @media (max-width: 640px) { .hint { display: none; } }
 
     .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(6, 9, 7, 0.7); }
     .overlay.open { display: flex; }
@@ -103,7 +128,17 @@
     </div>
   </div>
 
-  <div class="hint glass" id="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o flechas para conducir · <kbd>Espacio</kbd> derrape · <kbd>Shift</kbd> turbo · acércate a un cartel</div>
+  <div class="hint glass" id="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o flechas para conducir · <kbd>Espacio</kbd> derrape · <kbd>Shift</kbd> turbo · sigue la flecha del piso hasta cada proyecto</div>
+
+  <nav class="nav glass" id="nav" aria-label="Guía hacia los proyectos">
+    <button class="nav-target" id="nav-target" type="button" title="Cambiar de destino (tecla Q)">
+      <span class="nav-arrow" id="nav-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 20 21 12 16.5 4 21Z" fill="currentColor" stroke="#06140f" stroke-width="1.2" stroke-linejoin="round"/></svg></span>
+      <span class="nav-txt"><small>Destino</small><b id="nav-name"></b></span>
+      <span class="nav-dist" id="nav-dist"></span>
+    </button>
+    <canvas id="minimap" aria-hidden="true"></canvas>
+    <ul class="nav-list" id="nav-list" aria-label="Elegir destino"></ul>
+  </nav>
 
   <aside class="panel glass" id="panel" role="region" aria-live="polite" aria-label="Detalle del proyecto">
     <div class="num" id="p-num"></div>
@@ -137,6 +172,8 @@
         <tr><td>Espacio</td><td>Derrape</td></tr>
         <tr><td>Shift</td><td>Turbo</td></tr>
         <tr><td>E</td><td>Abrir el enlace del cartel cercano</td></tr>
+        <tr><td>1 a 7</td><td>Elegir a qué proyecto te guía la flecha</td></tr>
+        <tr><td>Q</td><td>Siguiente destino</td></tr>
         <tr><td>R</td><td>Volver al inicio</td></tr>
         <tr><td>L</td><td>Subir o bajar los faros</td></tr>
         <tr><td>Celular</td><td>Joystick a la izquierda, botones a la derecha</td></tr>
